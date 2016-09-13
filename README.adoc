@@ -3,4 +3,4 @@
 Get security features for your Arduino
 
 For more information about this library please visit us at
-http://www.astekcorp.com
+http://www.astekcorp.com/products/iot-secure-products

@@ -6,15 +6,16 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-eGuard	KEYWORD1	eGuard
-
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-connect KEYWORD2
-authenticate	KEYWORD2
-auth	KEYWORD2
+crypto_init 		KEYWORD2
+crypto_boreclean	KEYWORD2
+crypto_secureboot_getparams	KEYWORD2
+crypto_secureboot_check		KEYWORD2
+crypto_authenticate_sw		KEYWORD2
+crypto_authenticate_hw		KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
