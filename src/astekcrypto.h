@@ -1,6 +1,10 @@
 #ifndef ASTEKCRYPTO_H_
 #define ASTEKCRYPTO_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "cryptoauthlib.h"
 #include "bootloader/secureboot.h"
 
@@ -35,4 +39,7 @@ ATCA_STATUS crypto_secureboot_getparams(secureboot_params* params, uint8_t* app_
 */
 ATCA_STATUS crypto_secureboot_check(secureboot_params* params,uint8_t* AppImage);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* ASTEKCRYPTO_H_ */
