@@ -89,12 +89,25 @@ extern ATCA_STATUS hal_iface_release(ATCAIfaceType, void* hal_data);
 // include implementations for both interfaces in the HAL.
 
 // At least one of these symbols will be defined in the project or makefile for each application
-#define ATCA_HAL_I2C
+//#define ATCA_HAL_I2C
 //#define ATCA_HAL_SWI
 //#define ATCA_HAL_SPI
 //#define ATCA_HAL_UART
 //#define ATCA_HAL_KIT_HID
 //#define ATCA_HAL_KIT_CDC
+
+//If nothing defined than use I2C
+#ifndef ATCA_HAL_I2C
+	#ifndef ATCA_HAL_SWI
+		#ifndef ATCA_HAL_UART
+			#ifndef ATCA_HAL_KIT_CDC
+				#ifndef ATCA_HAL_KIT_HID
+					#define ATCA_HAL_I2C
+				#endif
+			#endif
+		#endif
+	#endif
+#endif
 
 // forward declare known physical layer APIs that must be implemented by the HAL layer (./hal/xyz) for this interface type
 
@@ -173,6 +186,14 @@ ATCA_STATUS hal_kit_hid_discover_devices(int busNum, ATCAIfaceCfg *cfg, int *fou
 void atca_delay_us(uint32_t delay);
 void atca_delay_10us(uint32_t delay);
 void atca_delay_ms(uint32_t delay);
+
+
+/************************************************************************/
+/* Customer HAL Implementation Functions                                */
+/************************************************************************/
+ATCA_STATUS hal_random_number(uint8_t* random_number);
+
+
 
 #ifdef __cplusplus
 }
