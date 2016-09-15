@@ -1,12 +1,12 @@
 #ifndef ASTEKCRYPTO_H_
 #define ASTEKCRYPTO_H_
 
+#include "cryptoauthlib.h"
+#include "bootloader/secureboot.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "cryptoauthlib.h"
-#include "bootloader/secureboot.h"
 
 extern ATCAIfaceCfg cfg_508a_host;
 extern ATCAIfaceCfg cfg_508a_client;
@@ -14,14 +14,7 @@ extern ATCAIfaceCfg cfg_508a_borecleaner;
 
 int crypto_getrev();
 ATCA_STATUS crypto_init();
-ATCA_STATUS crypto_changedev(ATCAIfaceCfg *cfg);
 ATCA_STATUS crypto_boreclean(ATCAIfaceCfg *cfg);
-
-ATCA_STATUS crypto_authenticate_sw(ATCAIfaceCfg *dev_cfg);
-ATCA_STATUS crypto_authenticate_hw(ATCAIfaceCfg *host_cfg, ATCAIfaceCfg *client_cfg);
-
-ATCA_STATUS crypto_sign_product();
-ATCA_STATUS crypto_verify_product();
 
 /*brief: generates all parameters to be saved into flash for secure boot operation
  *param[out] params			- ptr to secure boot parameters structure
@@ -42,4 +35,5 @@ ATCA_STATUS crypto_secureboot_check(secureboot_params* params,uint8_t* AppImage)
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* ASTEKCRYPTO_H_ */

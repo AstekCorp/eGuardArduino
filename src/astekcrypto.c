@@ -5,7 +5,7 @@
 #include "bootloader/secureboot.h"
 #include "atcacert/atcacert_host_hw.h"
 
-const int revision = 30;
+char astek_version[] = { "20160913" };  // change for each release, yyyymmdd
 
 extern ATCADevice _gDevice;
 extern ATCACommand _gCommandObj;
@@ -13,9 +13,15 @@ extern ATCAIface _gIface;
 
 ATCAIfaceCfg *gCfg = NULL; //Store device configuration
 
-int crypto_getrev()
+/** \brief returns a version string for the astek crypto release.
+ *  The format of the version string returned is "yyyymmdd"
+ * \param[out] verstr ptr to space to receive version string
+ * \return ATCA_STATUS
+ */
+ATCA_STATUS crypto_getrev( char *verstr )
 {
-	return revision;
+	strcpy( verstr, astek_version );
+	return ATCA_SUCCESS;
 }
 
 ATCA_STATUS crypto_info(uint8_t *revision)
@@ -104,17 +110,3 @@ ATCA_STATUS crypto_secureboot_check(secureboot_params* params,uint8_t* AppImage)
 	return secureboot_check(params, AppImage);
 }
 
-ATCA_STATUS crypto_sign_product(uint8_t* buffer, size_t length, uint8_t* signature)
-{
-	return sign_product(buffer, length, signature);
-}
-
-//ATCA_STATUS crypto_verify_product(uint8_t* buffer, size_t length, uint8_t* signature, uint8_t* public_key)
-//{
-	//ATCA_STATUS ret = ATCA_UNIMPLEMENTED;
-	//auto uint8_t public_key[64];
-	//
-	//atcab_read_pubkey(ROOT_PUBKEY_SLOT, &root_pub_key);
-	//
-	//return verify_product(buffer, length, signature, public_key);
-//}

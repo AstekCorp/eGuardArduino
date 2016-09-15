@@ -89,7 +89,7 @@ extern ATCA_STATUS hal_iface_release(ATCAIfaceType, void* hal_data);
 // include implementations for both interfaces in the HAL.
 
 // At least one of these symbols will be defined in the project or makefile for each application
-//#define ATCA_HAL_I2C
+#define ATCA_HAL_I2C
 //#define ATCA_HAL_SWI
 //#define ATCA_HAL_SPI
 //#define ATCA_HAL_UART

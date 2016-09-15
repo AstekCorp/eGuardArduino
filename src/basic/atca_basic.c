@@ -75,55 +75,6 @@ ATCADevice _gDevice = NULL;
 ATCACommand _gCommandObj = NULL;
 ATCAIface _gIface = NULL;
 
-
-
-/** \atcab_changeDevCfg updates the device configuration during runtime. 
-// Function used directly from 
-*/
-ATCA_STATUS atcab_changeDevCfg(ATCAIfaceCfg *cfg)
-{
-	//static uint32_t *test = 0x00000000;
-	static uint32_t *IfaceCfg = 0x00000000;
-	
-	IfaceCfg = _gIface;
-	IfaceCfg += sizeof(ATCAIfaceType);
-	*IfaceCfg = cfg;
-	
-	//
-	//test = *IfaceCfg;
-	//test += sizeof(ATCAIfaceType); //point to slave_address in struct
-	//*test = 0x02EE;
-	//
-	
-	if ( !_gDevice )
-		return ATCA_GEN_FAIL;
-	
-	
-	
-     //  (*_gIface)  //->mIfaceCFG).atcai2c.slave_address = 0xee;
-	
-	
-	//static ATCAIfaceCfg* test = NULL;
-	//static uint32_t *test = 0;
-	//static uint32_t *test1 = 0;
-	
-	
-		 //  test = (ATCAIfaceCfg*)(*(&_gIface));
-		 //   test = (ATCAIfaceCfg*) &(*((&_gIface)));
-		 //test1 = *test;
-		 
-		 //  *(test).atcai2c.slave_address  = 0xee;
-	return ATCA_SUCCESS;
-}
-
-ATCA_STATUS atcab_changeaddr(uint8_t slave_address)
-{
-	ATCAIfaceCfg *cfg = atgetifacecfg(_gIface);
-	cfg->atcai2c.slave_address = slave_address;
-	
-	return ATCA_SUCCESS;
-}
-
 /** \brief atcab_init is called once for the life of the application and creates a global ATCADevice object used by Basic API.
  *  This method builds a global ATCADevice instance behinds the scenes that's used for all Basic API operations
  *  \param[in] cfg is a pointer to an interface configuration.  This is usually a predefined configuration found in atca_cfgs.h

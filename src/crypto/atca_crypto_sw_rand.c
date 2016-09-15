@@ -28,6 +28,7 @@ int atcac_sw_random(uint8_t* data, size_t data_size)
 	ATCA_STATUS ret;
 	uint8_t nonce[32], randnum[32];
 	
+	//Request random number from IC
 	ret = atcab_random(nonce);
 	
 	//Good idea to onetimepad nonce with random number generated from customer (HAL function)
@@ -35,7 +36,9 @@ int atcac_sw_random(uint8_t* data, size_t data_size)
 	onetimepad(nonce,randnum, 32);
 	
 	if ((seed[0] == 0) && (seed[10] == 0))
+	{
 		memcpy(seed, g_signer_1_ca_public_key, 32);				//if seed hasn't been initialized use root public key
+	}
 	
 	onetimepad(nonce,seed,32);									//one time pad to create cipher seed with nonce
 	
