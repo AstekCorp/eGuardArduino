@@ -96,6 +96,7 @@ typedef enum {
 	ATCA_TX_FAIL					= 0xF7, //!< Failed to write
 	ATCA_NOT_LOCKED					= 0xF8, //!< required zone was not locked
 	ATCA_NO_DEVICES					= 0xF9, //!< For protocols that support device discovery (kit protocol), no devices were found
+	ATCA_VERIFY_FAIL				= 0xFA,
 } ATCA_STATUS;
 
 #ifdef __cplusplus

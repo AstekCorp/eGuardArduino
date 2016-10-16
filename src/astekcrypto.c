@@ -2,10 +2,9 @@
 #include "astekcrypto.h"
 #include "cryptoauthlib.h"
 #include "authentication/Authenticate.h"
-#include "bootloader/secureboot.h"
-#include "atcacert/atcacert_host_hw.h"
+#include "authentication/cert_def_2_device.h"
 
-char astek_version[] = { "20160913" };  // change for each release, yyyymmdd
+char astek_version[] = { "1.1.0.00110" };  // Maj.Min.svnMaj.svnMin
 
 extern ATCADevice _gDevice;
 extern ATCACommand _gCommandObj;
@@ -13,100 +12,62 @@ extern ATCAIface _gIface;
 
 ATCAIfaceCfg *gCfg = NULL; //Store device configuration
 
-/** \brief returns a version string for the astek crypto release.
- *  The format of the version string returned is "yyyymmdd"
- * \param[out] verstr ptr to space to receive version string
- * \return ATCA_STATUS
- */
-ATCA_STATUS crypto_getrev( char *verstr )
+
+ATCA_STATUS egGetRev(char *verstr)
 {
 	strcpy( verstr, astek_version );
 	return ATCA_SUCCESS;
 }
 
-ATCA_STATUS crypto_info(uint8_t *revision)
+ATCA_STATUS egGetConfig(OTPConfig *otpconfig)
 {
-	return atcab_info(revision);
+	return atcab_read_bytes_zone(ATECC508A, ATCA_ZONE_OTP, 0, ATCA_OTP_SIZE, (uint8_t*)otpconfig);
 }
 
-ATCA_STATUS crypto_sernum(uint8_t *sernum)
-{
-	return atcab_read_serial_number(sernum);
-}
-
-ATCA_STATUS crypto_init()
-{
-	gCfg = &cfg_ateccx08a_i2c_default;
-	gCfg->devtype = ATECC508A;
-	
-	return atcab_init(gCfg);
-}
-
-ATCA_STATUS cryto_read_config(uint8_t *config_data)
-{
-	atcab_read_ecc_config_zone(config_data);
-}
-
-ATCA_STATUS crypto_read_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t offset, uint8_t *data, uint8_t len)
-{
-	return atcab_read_zone(zone, slot, block, offset, *data, len);
-}
-
-ATCA_STATUS crypto_changedev(ATCAIfaceCfg *cfg)
+ATCA_STATUS egSelectDevice(ATCAIfaceCfg *cfg)
 {
 	return atcab_init(cfg);
 }
 
-ATCA_STATUS crypto_boreclean(ATCAIfaceCfg *cfg)
+ATCA_STATUS egDetectDevice()
 {
-	ATCA_STATUS status;
-
-	crypto_changedev(cfg);
-	
-	status = atcab_wakeup(); //try to wake - tests i2c and delay function
-
-	return status;
+	return atcab_wakeup(); //try to wake - tests i2c hal and delay function
 }
 
-ATCA_STATUS crypto_chageaddr(uint8_t slave_address)
-{	
-	ATCAIfaceCfg *cfg = atgetifacecfg(_gIface);
-	cfg->atcai2c.slave_address = slave_address;
-	
-	return ATCA_SUCCESS;
-}
-
-ATCA_STATUS crypto_authenticate_hw(ATCAIfaceCfg *host_cfg, ATCAIfaceCfg *client_cfg)
+ATCA_STATUS egSerNum(uint8_t *sernum)
 {
-	return authenticate_hw(host_cfg, client_cfg);
+	return atcab_read_serial_number(sernum);
 }
 
-ATCA_STATUS crypto_authenticate_sw(ATCAIfaceCfg *dev_cfg)
+ATCA_STATUS egGenRandom(uint8_t *randnum)
 {
-	return authenticate_sw(dev_cfg);
+	return atcab_random(randnum);
 }
 
-ATCA_STATUS crypto_gen_challenge(uint8_t g_challenge[32])
-{	
-	ATCA_STATUS ret;
-	ret = atcacert_gen_challenge_hw(g_challenge);
-		
-	return ret;
-}
-
-ATCA_STATUS crypto_secureboot_getparams(secureboot_params* params, uint8_t* app_tbs_digest, uint32_t app_size)
+ATCA_STATUS egDevicePubKey(uint8_t *pubkey)
 {
-	return get_boot_params(params, app_tbs_digest, app_size);	
+	return atcab_get_pubkey(g_cert_def_2_device.private_key_slot,pubkey);
 }
 
-/*brief: Checks application to be run before jumping to application section. 
- *This should be called in booloader section before authorizing application to run
- *param[in] params			- ptr to secure boot parameters structure, generate from generate boot method using astek usb signer
- *param[in] AppImage		- ptr to application image
- *return     ATCA_STATUS
-*/
-ATCA_STATUS crypto_secureboot_check(secureboot_params* params,uint8_t* AppImage)
+ATCA_STATUS egAuthenticate(AuthenticationType level, uint8_t *param)
 {
-	return secureboot_check(params, AppImage);
-}
+	switch (level)
+	{
+		case SYMMETRIC:
+			//call symmetric authentication function
+			return auth_symmetric_sw();
+		break;
 
+		case PKI_DEVICE:
+			//call pki device authentication function
+			return auth_dev_sw(param);
+		break;
+
+		case PKI_CHAIN:
+			//call SW authentication function
+			return auth_chain_sw();
+		break;
+	}
+
+	return ATCA_GEN_FAIL;
+}

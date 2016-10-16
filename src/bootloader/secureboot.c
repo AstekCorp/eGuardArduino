@@ -1,5 +1,3 @@
-
-
 #include "secureboot.h"
 #include "atcacert/atcacert_client.h"
 #include "atcacert/atcacert_host_hw.h"

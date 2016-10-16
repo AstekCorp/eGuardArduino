@@ -31,7 +31,6 @@ int atcac_sw_random(uint8_t* data, size_t data_size)
 	//Request random number from IC
 	ret = atcab_random(nonce);
 	
-	//Good idea to onetimepad nonce with random number generated from customer (HAL function)
 	hal_random_number(&randnum);
 	onetimepad(nonce,randnum, 32);
 	

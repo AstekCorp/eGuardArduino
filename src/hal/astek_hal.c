@@ -10,7 +10,7 @@
 static volatile uint8_t *twim_rx_data = NULL;
 
 /** \brief default configuration for crypto IC devices */
-ATCAIfaceCfg cfg_508a_host = {
+ATCAIfaceCfg cfg_device_f0 = {
 	.iface_type				= ATCA_I2C_IFACE,
 	.devtype				= ATECC508A,
 	.atcai2c.slave_address	= 0xF0,
@@ -21,7 +21,7 @@ ATCAIfaceCfg cfg_508a_host = {
 	.rx_retries				= 20
 };
 
-ATCAIfaceCfg cfg_508a_client = {
+ATCAIfaceCfg cfg_device_e0 = {
 	.iface_type				= ATCA_I2C_IFACE,
 	.devtype				= ATECC508A,
 	.atcai2c.slave_address	= 0xE0,
@@ -33,7 +33,7 @@ ATCAIfaceCfg cfg_508a_client = {
 
 };
 
-ATCAIfaceCfg cfg_508a_borecleaner = {
+ATCAIfaceCfg cfg_device_c0 = {
 	.iface_type				= ATCA_I2C_IFACE,
 	.devtype				= ATECC508A,
 	.atcai2c.slave_address	= 0xC0,
@@ -44,7 +44,7 @@ ATCAIfaceCfg cfg_508a_borecleaner = {
 	.rx_retries				= 20
 
 };
-
+ATCAIfaceCfg *cfg_eGuard = &cfg_device_e0;
 
 /*Timer functions*/
 /*Examples use atmel ASF supplied routines*/
@@ -123,13 +123,23 @@ return ATCA_SUCCESS;
 ATCA_STATUS twi_write_bytes(uint32_t length, uint8_t *buffer)
 {
 	static uint8_t twi_status;
-
+    int attemptsCtr;
+	
 	while (length > 0)
 	{
-		TWDR = *buffer++;
+        attemptsCtr = 1000;
+  	    TWDR = *buffer++;
 		TWCR = (1 << TWEN) | (1 << TWINT);
-		while ((TWCR & (1 << TWINT)) == 0);
-		
+
+ 	    // timeout if the system doesn't respond quickly. 
+	    do {
+	    	attemptsCtr--;
+	    } while (bit_is_clear(TWCR, TWINT) && attemptsCtr);
+	
+	    if (attemptsCtr == 0) {
+		    return ATCA_TX_TIMEOUT;
+	    }
+			
 		// Verify success on each byte.
 		twi_status = TWSR_status;
 		
@@ -155,10 +165,18 @@ ATCA_STATUS twi_master_write(const twi_package_t *packet)
 {
 	uint8_t twi_status;
 	uint8_t twi_address = packet->chip;
-
+    int attemptsCtr = 1000;
+	
 	 /*Enable the transceiver in Master Transmit mode and initiate a START condition.*/
+	// timeout if the system doesn't respond quickly.
 	TWCR = (1 << TWEN) | (1 << TWINT) | (1 << TWSTA);
-	while ((TWCR & (1 << TWINT)) == 0);
+	do {
+		attemptsCtr--;
+	} while (bit_is_clear(TWCR, TWINT) && attemptsCtr);
+	
+	if (attemptsCtr == 0) {
+		return ATCA_TX_TIMEOUT;
+	}
 	
 	/*Initialize status*/
 	twi_status = TWSR_status;
@@ -206,22 +224,22 @@ ATCA_STATUS i2c_master_write(ATCAIface iface, uint8_t *txdata, int txlength)
 {	
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
 
-    twi_package_t *packet;
+    twi_package_t packet;
 	/*! TWI chip address to communicate with*/
-	packet->chip = cfg->atcai2c.slave_address >> 1;
+	packet.chip = cfg->atcai2c.slave_address;
 	/*not used for 508A*/
-	packet->addr = 0;
+	packet.addr = 0;
 	/*not used for 508A*/
-	packet->addr_length = 0;
+	packet.addr_length = 0;
 	/*Where to find the data to be written*/
-	packet->buffer = txdata;
+	packet.buffer = txdata;
 	/*How many bytes do we want to write*/
-	packet->length = txlength;	
+	packet.length = txlength;	
 	/*! This flag tells the low level drive
 	  to check for ack only*/
-	packet->chk_ack_only_flag = false;
+	packet.chk_ack_only_flag = false;
    
-	return twi_master_write(packet);
+	return twi_master_write(&packet);
 }
 
 
@@ -231,10 +249,18 @@ ATCA_STATUS twi_master_read(const twi_package_t *package)
 	uint8_t twi_status;
 	uint16_t i;
 	twim_rx_data = package->buffer;
-
+    int attemptsCtr = 1000;
+	
 	/*Enable the transmitter, send a START condition and check for successful execution*/
+	// timeout if the system doesn't respond quickly.
 	TWCR = (1 << TWEN) | (1 << TWINT) | (1 << TWSTA) | (1 << TWEA);
-	while ((TWCR & (1 << TWINT)) == 0);
+	do {
+		attemptsCtr--;
+	} while (bit_is_clear(TWCR, TWINT) && attemptsCtr);
+	
+	if (attemptsCtr == 0) {
+		return ATCA_RX_TIMEOUT;
+	}
 	twi_status = TWSR_status;
 	
 	/*if bus is busy return error*/
@@ -246,7 +272,15 @@ ATCA_STATUS twi_master_read(const twi_package_t *package)
 	TWDR = package->chip | 0x01;
 
 	TWCR = (1 << TWEN) | (1 << TWINT);
-	while ((TWCR & (1 << TWINT)) == 0);
+    // timeout if the system doesn't respond quickly. 
+    attemptsCtr = 1000;
+	do {
+    	attemptsCtr--;
+    } while (bit_is_clear(TWCR, TWINT) && attemptsCtr);
+	
+    if (attemptsCtr == 0) {
+	    return ATCA_RX_TIMEOUT;
+    }
 	
 	/*Stop if not ACK*/
 	if (TWSR_status_is_not(TW_MR_SLA_ACK)){
@@ -264,7 +298,15 @@ ATCA_STATUS twi_master_read(const twi_package_t *package)
 		if(i < ((package->length)-1)){
 			
 			TWCR = (1 << TWEN) | (1 << TWINT)| (1 << TWEA);
-			while ((TWCR & (1 << TWINT)) == 0);
+            // timeout if the system doesn't respond quickly. 
+            attemptsCtr = 1000;
+        	do {
+            	attemptsCtr--;
+            } while (bit_is_clear(TWCR, TWINT) && attemptsCtr);
+	
+            if (attemptsCtr == 0) {
+        	    return ATCA_RX_TIMEOUT;
+            }
 			
 			if (TWSR_status_is_not(TW_MR_DATA_ACK))
 			return TWI_BUS_ERROR;
@@ -274,7 +316,15 @@ ATCA_STATUS twi_master_read(const twi_package_t *package)
 			TWCR &= ~(1 <<TWEA);
 			TWCR = (1 << TWEN) | (1 << TWINT);
 			
-			while ((TWCR & (1 << TWINT)) == 0);
+            // timeout if the system doesn't respond quickly. 
+            attemptsCtr = 1000;
+        	do {
+            	attemptsCtr--;
+            } while (bit_is_clear(TWCR, TWINT) && attemptsCtr);
+	
+            if (attemptsCtr == 0) {
+        	    return ATCA_RX_TIMEOUT;
+            }
 			
 			if (TWSR_status_is_not(TW_MR_DATA_NACK))
 			return TWI_BUS_ERROR;
@@ -300,27 +350,27 @@ ATCA_STATUS i2c_master_read( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlengt
 {
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
 	ATCA_STATUS ret = ATCA_UNIMPLEMENTED;
-	static twi_package_t *package;
+	twi_package_t package;
 	
 	int retries = cfg->rx_retries;
 
 	/*! TWI chip address to communicate with*/
-	package->chip = cfg->atcai2c.slave_address;
+	package.chip = cfg->atcai2c.slave_address;
 	/*not used for 508A*/
-	package->addr = 0;
+	package.addr = 0;
 	/*not used for 508A*/
-	package->addr_length = 0;
+	package.addr_length = 0;
 	/*Where to find the data to be written*/
-	package->buffer = rxdata;
+	package.buffer = rxdata;
 	/*How many bytes do we want to write*/
-	package->length = *rxlength;
+	package.length = *rxlength;
 	/*! This flag tells the low level drive
 	  to check for ack only*/
-	package->chk_ack_only_flag = false;
+	package.chk_ack_only_flag = false;
 	
 	while ((retries-- > 0 ) && (ret != ATCA_SUCCESS))
 	{
-		ret = twi_master_read(package);
+		ret = twi_master_read(&package);
 	}	
 	
 	return ret;
@@ -379,4 +429,39 @@ ATCA_STATUS hal_i2c_discover_devices(int busNum, ATCAIfaceCfg cfg[], int *found 
 {
 
 	return ATCA_UNIMPLEMENTED;
+}
+
+ /* brief return software generated 32 byte random number
+  * param[out] random_number - ptr to space to receive the random number
+ */
+ATCA_STATUS hal_random_number(uint8_t* random_number)
+{
+  /* below is a psuedo-random number generator. Note: this generator does not meet the NIST requirements
+     for a random number generator. However, it is sufficient for the purposes of this general purpose 
+	 security evaluation platform. For additional entroy in the random number generator, an alternate
+	 algorithm is recommended. */
+  uint8_t random_array[32];
+  uint8_t rval;
+                 // UNDONE
+                uint8_t challenge[32]= {
+                                0x3D, 0x1A, 0x85, 0x25, 0x37, 0xB5, 0xC3, 0x2C,  0xF3, 0x6E, 0x3B, 0x13, 0x20, 0x4A, 0xC4, 0xEF,
+                0x1F, 0x9E, 0xBE, 0xFB, 0xf5, 0x9B, 0x98, 0x59,  0x38, 0x23, 0xC6, 0x4A, 0xE1, 0x04, 0x8A, 0x66};
+                
+                memcpy(random_number, challenge, ATCA_KEY_SIZE);
+                
+                return ATCA_SUCCESS;
+
+   
+  // if analog input pin 0 is unconnected, random analog
+  // noise will cause the call to randomSeed() to generate
+  // different seed numbers each time the sketch runs.
+  // randomSeed() will then shuffle the random function.
+//  randomSeed(analogRead(0));
+
+//  for (int i; i < 32; i++) {
+//	  rval = random(0x00, 0x100);  // min value is inclusive, max value is exclusive.
+//	  random_array[i] = rval;
+//  }
+     
+//  memcpy(random_number, random_array, 32); // copy 32 byts from random_array to the random_number variable.
 }

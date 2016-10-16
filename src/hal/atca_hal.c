@@ -95,7 +95,7 @@ ATCA_STATUS hal_iface_init( ATCAIfaceCfg *cfg, ATCAHAL_t *hal )
 		break;
 	case ATCA_UART_IFACE:
 		#ifdef ATCA_HAL_UART
-		// TODO - initialize UART iface
+		// initialize UART iface
 		#endif
 		#ifdef ATCA_HAL_KIT_CDC
 		hal->halinit = &hal_kit_cdc_init;
@@ -113,7 +113,7 @@ ATCA_STATUS hal_iface_init( ATCAIfaceCfg *cfg, ATCAHAL_t *hal )
 		break;
 	case ATCA_SPI_IFACE:
 		#ifdef ATCA_HAL_SPI
-		// TODO - initialize SPI iface
+		// initialize SPI iface
 		#endif
 		break;
 	case ATCA_HID_IFACE:
@@ -157,7 +157,7 @@ ATCA_STATUS hal_iface_release( ATCAIfaceType ifacetype, void *hal_data )
 		break;
 	case ATCA_UART_IFACE:
 			#ifdef ATCA_HAL_UART
-		// TODO - release HAL UART
+		// release HAL UART
 			#endif
 			#ifdef ATCA_HAL_KIT_CDC
 		status = hal_kit_cdc_release(hal_data);
@@ -165,7 +165,7 @@ ATCA_STATUS hal_iface_release( ATCAIfaceType ifacetype, void *hal_data )
 		break;
 	case ATCA_SPI_IFACE:
 			#ifdef ATCA_HAL_SPI
-		// TODO - release HAL SPI
+		// release HAL SPI
 			#endif
 		break;
 	case ATCA_HID_IFACE:
@@ -185,7 +185,6 @@ ATCA_STATUS hal_iface_release( ATCAIfaceType ifacetype, void *hal_data )
 ATCA_STATUS hal_i2c_wake(ATCAIface iface)
 {
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
-	uint8_t currentaddress = cfg->atcai2c.slave_address;
 	uint32_t bdrt = cfg->atcai2c.baud;
 	uint8_t data[4], expected[4] = { 0x04, 0x11, 0x33, 0x43 };
 	uint16_t rlength = 4;
@@ -193,12 +192,8 @@ ATCA_STATUS hal_i2c_wake(ATCAIface iface)
 	if ( bdrt != 100000 )  // if not already at 100KHz, change it
 	change_i2c_speed( iface, 100000 );
 	
-	if (cfg->atcai2c.slave_address != 0x00) //change slave address to 0x00 if not already, for wake need to pull sda for twhi+twlo
-		cfg->atcai2c.slave_address = 0x00;
-	
 	i2c_master_write (iface,&data[0],0);    // part will NACK, so don't check for status
 	
-	cfg->atcai2c.slave_address = currentaddress; //restore original address to cfg
 	atca_delay_us(cfg->wake_delay);     // wait tWHI + tWLO which is configured based on device type and configuration structure
 	
 	hal_i2c_receive (iface,&data[0],&rlength);

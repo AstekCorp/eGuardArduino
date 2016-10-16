@@ -7,7 +7,7 @@
 #include "cryptoauthlib.h"
 
 
-
+// DOXYGEN
 typedef struct secureboot_params {
 	uint8_t appimg_signature[64];
 	uint32_t appimg_size;
@@ -16,8 +16,10 @@ typedef struct secureboot_params {
 	uint8_t device_cert[DEVICE_CERT_SIZE];
 } secureboot_params;
 
-
+// DOXYGEN
 ATCA_STATUS get_boot_params(secureboot_params* params, uint8_t* app_tbs_digest, uint32_t app_size);
+
+// DOXYGEN
 ATCA_STATUS secureboot_check(secureboot_params* params, uint8_t* AppImage);
 
 #endif /* SECUREBOOT_H_ */

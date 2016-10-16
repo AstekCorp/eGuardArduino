@@ -2596,7 +2596,7 @@ ATCA_STATUS atcab_mac( uint8_t mode, uint16_t key_id, const uint8_t* challenge, 
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_MAC);
 
-		if ( (status != atcab_wakeup()) != ATCA_SUCCESS ) break;
+		if ( (status = atcab_wakeup()) != ATCA_SUCCESS ) break;
 
 		// send the command
 		if ( (status = atsend( _gIface, (uint8_t*)&packet, packet.txsize )) != ATCA_SUCCESS )

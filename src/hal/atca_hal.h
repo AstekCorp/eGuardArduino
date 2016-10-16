@@ -191,6 +191,19 @@ void atca_delay_ms(uint32_t delay);
 /************************************************************************/
 /* Customer HAL Implementation Functions                                */
 /************************************************************************/
+
+
+
+
+/**********************************************************************************************//**
+ * \fn	ATCA_STATUS hal_random_number(uint8_t* random_number)
+ *
+ * \brief	HAL random number. Implementation of SW pseudo random number generator (PRG)
+ *
+ * \param [in,out]	random_number	32 byte random number
+ *
+ * \return	ATCA_STATUS		Status of operation
+ **************************************************************************************************/
 ATCA_STATUS hal_random_number(uint8_t* random_number);
 
 
