@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  *
  * \brief  Atmel Crypto Auth hardware interface object
  *
@@ -60,7 +106,7 @@ struct atca_iface {
 
 	ATCA_STATUS (*atinit)(void *hal, ATCAIfaceCfg *);
 	ATCA_STATUS (*atpostinit)(ATCAIface hal);
-	ATCA_STATUS (*atsend)(ATCAIface hal, uint8_t *txdata, int txlength);
+	ATCA_STATUS (*atsend)(ATCAIface hal, uint8_t *txdata, uint16_t txlength);
 	ATCA_STATUS (*atreceive)( ATCAIface hal, uint8_t *rxdata, uint16_t *rxlength);
 	ATCA_STATUS (*atwake)(ATCAIface hal);
 	ATCA_STATUS (*atidle)(ATCAIface hal);
@@ -100,20 +146,20 @@ ATCA_STATUS atinit(ATCAIface caiface)
 	ATCA_STATUS status = ATCA_COMM_FAIL;
 	ATCAHAL_t hal;
 
-	_atinit( caiface, &hal );
+	status = _atinit( caiface, &hal );
+  if (status == ATCA_SUCCESS) {
+  	status = caiface->atinit( &hal, caiface->mIfaceCFG );
+  	if (status == ATCA_SUCCESS) {
+	  	caiface->hal_data = hal.hal_data;
 
-	status = caiface->atinit( &hal, caiface->mIfaceCFG );
-	if (status == ATCA_SUCCESS) {
-		caiface->hal_data = hal.hal_data;
-
-		// Perform the post init
-		status = caiface->atpostinit( caiface );
-	}
-
+		  // Perform the post init
+		  status = caiface->atpostinit( caiface );
+  	}
+  }
 	return status;
 }
 
-ATCA_STATUS atsend(ATCAIface caiface, uint8_t *txdata, int txlength)
+ATCA_STATUS atsend(ATCAIface caiface, uint8_t *txdata, uint16_t txlength)
 {
 	return caiface->atsend(caiface, txdata, txlength);
 }
@@ -130,13 +176,13 @@ ATCA_STATUS atwake(ATCAIface caiface)
 
 ATCA_STATUS atidle(ATCAIface caiface)
 {
-	atca_delay_ms(1);
+	atca_delay_ms(CMD_DELAY);
 	return caiface->atidle(caiface);
 }
 
 ATCA_STATUS atsleep(ATCAIface caiface)
 {
-	atca_delay_ms(1);
+	atca_delay_ms(CMD_DELAY);
 	return caiface->atsleep(caiface);
 }
 
@@ -162,8 +208,10 @@ void deleteATCAIface(ATCAIface *caiface) // destructor
 
 ATCA_STATUS _atinit(ATCAIface caiface, ATCAHAL_t *hal)
 {
+  ATCA_STATUS status;
+
 	// get method mapping to HAL methods for this interface
-	hal_iface_init( caiface->mIfaceCFG, hal );
+	status = hal_iface_init( caiface->mIfaceCFG, hal );
 	caiface->atinit     = hal->halinit;
 	caiface->atpostinit = hal->halpostinit;
 	caiface->atsend     = hal->halsend;
@@ -173,6 +221,6 @@ ATCA_STATUS _atinit(ATCAIface caiface, ATCAHAL_t *hal)
 	caiface->atidle     = hal->halidle;
 	caiface->hal_data   = hal->hal_data;
 
-	return ATCA_SUCCESS;
+	return status;
 }
 /** @} */

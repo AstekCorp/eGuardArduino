@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief low-level HAL - methods used to setup indirection to physical layer interface
  *
  * Copyright (c) 2015 Atmel Corporation. All rights reserved.
@@ -66,7 +112,7 @@ typedef struct {
 	// from needing to know the low-level details, including global naming of HAL methods and physical implementation.
 	ATCA_STATUS (*halinit)(void *hal, ATCAIfaceCfg *cfg);
 	ATCA_STATUS (*halpostinit)(ATCAIface iface);
-	ATCA_STATUS (*halsend)(ATCAIface iface, uint8_t *txdata, int txlength);
+	ATCA_STATUS (*halsend)(ATCAIface iface, uint8_t *txdata, uint16_t txlength);
 	ATCA_STATUS (*halreceive)(ATCAIface iface, uint8_t* rxdata, uint16_t* rxlength);
 	ATCA_STATUS (*halwake)(ATCAIface iface);
 	ATCA_STATUS (*halidle)(ATCAIface iface);
@@ -80,8 +126,8 @@ typedef struct {
 extern "C" {
 #endif
 
-extern ATCA_STATUS hal_iface_init(ATCAIfaceCfg *, ATCAHAL_t* hal);
-extern ATCA_STATUS hal_iface_release(ATCAIfaceType, void* hal_data);
+extern ATCA_STATUS hal_iface_init(ATCAIfaceCfg *cfg, ATCAHAL_t *hal);
+extern ATCA_STATUS hal_iface_release(ATCAIfaceType ifacetype, void *hal_data);
 
 // Added one or more of the following defines to your compiler's defines to include add support for
 // that particular interface in your application. For example, if you're writing an I2C to SWI
@@ -89,12 +135,12 @@ extern ATCA_STATUS hal_iface_release(ATCAIfaceType, void* hal_data);
 // include implementations for both interfaces in the HAL.
 
 // At least one of these symbols will be defined in the project or makefile for each application
-//#define ATCA_HAL_I2C
-//#define ATCA_HAL_SWI
-//#define ATCA_HAL_SPI
-//#define ATCA_HAL_UART
-//#define ATCA_HAL_KIT_HID
-//#define ATCA_HAL_KIT_CDC
+//ATCA_HAL_I2C
+//ATCA_HAL_SWI
+//ATCA_HAL_SPI
+//ATCA_HAL_UART
+//ATCA_HAL_KIT_HID
+//ATCA_HAL_KIT_CDC
 
 //If nothing defined than use I2C
 #ifndef ATCA_HAL_I2C
@@ -114,70 +160,70 @@ extern ATCA_STATUS hal_iface_release(ATCAIfaceType, void* hal_data);
 #ifdef ATCA_HAL_I2C
 ATCA_STATUS hal_i2c_init( void *hal, ATCAIfaceCfg *cfg);
 ATCA_STATUS hal_i2c_post_init(ATCAIface iface);
-ATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, int txlength);
+ATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, uint16_t txlength);
 ATCA_STATUS hal_i2c_receive( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength);
 ATCA_STATUS hal_i2c_wake(ATCAIface iface);
 ATCA_STATUS hal_i2c_idle(ATCAIface iface);
 ATCA_STATUS hal_i2c_sleep(ATCAIface iface);
 ATCA_STATUS hal_i2c_release(void *hal_data );
-ATCA_STATUS hal_i2c_discover_buses(int i2c_buses[], int max_buses);
-ATCA_STATUS hal_i2c_discover_devices(int busNum, ATCAIfaceCfg *cfg, int *found );
+ATCA_STATUS hal_i2c_discover_buses(uint16_t i2c_buses[], uint16_t max_buses);
+ATCA_STATUS hal_i2c_discover_devices(uint16_t busNum, ATCAIfaceCfg cfg[], uint16_t *found );
 //Standard I2C Functions
 void change_i2c_speed( ATCAIface iface, uint32_t speed );
-ATCA_STATUS i2c_master_write(ATCAIface iface, uint8_t *txdata, int txlength);
+ATCA_STATUS i2c_master_write(ATCAIface iface, uint8_t *txdata, uint16_t txlength);
 ATCA_STATUS i2c_master_read( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength);
 #endif
 
 #ifdef ATCA_HAL_SWI
 ATCA_STATUS hal_swi_init(void *hal, ATCAIfaceCfg *cfg);
 ATCA_STATUS hal_swi_post_init(ATCAIface iface);
-ATCA_STATUS hal_swi_send(ATCAIface iface, uint8_t *txdata, int txlength);
+ATCA_STATUS hal_swi_send(ATCAIface iface, uint8_t *txdata, uint16_t txlength);
 ATCA_STATUS hal_swi_receive( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength);
 ATCA_STATUS hal_swi_wake(ATCAIface iface);
 ATCA_STATUS hal_swi_idle(ATCAIface iface);
 ATCA_STATUS hal_swi_sleep(ATCAIface iface);
 ATCA_STATUS hal_swi_release(void *hal_data );
-ATCA_STATUS hal_swi_discover_buses(int swi_buses[], int max_buses);
-ATCA_STATUS hal_swi_discover_devices(int busNum, ATCAIfaceCfg *cfg, int *found);
+ATCA_STATUS hal_swi_discover_buses(uint16_t swi_buses[], uint16_t max_buses);
+ATCA_STATUS hal_swi_discover_devices(uint16_t busNum, ATCAIfaceCfg *cfg, uint16_t *found);
 #endif
 
 #ifdef ATCA_HAL_UART
 ATCA_STATUS hal_uart_init(void *hal, ATCAIfaceCfg *cfg);
 ATCA_STATUS hal_uart_post_init(ATCAIface iface);
-ATCA_STATUS hal_uart_send(ATCAIface iface, uint8_t *txdata, int txlength);
+ATCA_STATUS hal_uart_send(ATCAIface iface, uint8_t *txdata, uint16_t txlength);
 ATCA_STATUS hal_uart_receive( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength);
 ATCA_STATUS hal_uart_wake(ATCAIface iface);
 ATCA_STATUS hal_uart_idle(ATCAIface iface);
 ATCA_STATUS hal_uart_sleep(ATCAIface iface);
 ATCA_STATUS hal_uart_release(ATCAIface iface);
-ATCA_STATUS hal_uart_discover_buses(int uart_buses[], int max_buses);
-ATCA_STATUS hal_uart_discover_devices(int busNum, ATCAIfaceCfg *cfg, int *found);
+ATCA_STATUS hal_uart_discover_buses(uint16_t uart_buses[], uint16_t max_buses);
+ATCA_STATUS hal_uart_discover_devices(uint16_t busNum, ATCAIfaceCfg *cfg, uint16_t *found);
 #endif
 
 #ifdef ATCA_HAL_KIT_CDC
 ATCA_STATUS hal_kit_cdc_init(void *hal, ATCAIfaceCfg *cfg);
 ATCA_STATUS hal_kit_cdc_post_init(ATCAIface iface);
-ATCA_STATUS hal_kit_cdc_send(ATCAIface iface, uint8_t *txdata, int txlength);
+ATCA_STATUS hal_kit_cdc_send(ATCAIface iface, uint8_t *txdata, uint16_t txlength);
 ATCA_STATUS hal_kit_cdc_receive( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength);
 ATCA_STATUS hal_kit_cdc_wake(ATCAIface iface);
 ATCA_STATUS hal_kit_cdc_idle(ATCAIface iface);
 ATCA_STATUS hal_kit_cdc_sleep(ATCAIface iface);
 ATCA_STATUS hal_kit_cdc_release(void *hal_data);
-ATCA_STATUS hal_kit_cdc_discover_buses(int i2c_buses[], int max_buses);
-ATCA_STATUS hal_kit_cdc_discover_devices(int busNum, ATCAIfaceCfg *cfg, int *found);
+ATCA_STATUS hal_kit_cdc_discover_buses(uint16_t i2c_buses[], uint16_t max_buses);
+ATCA_STATUS hal_kit_cdc_discover_devices(uint16_t busNum, ATCAIfaceCfg *cfg, uint16_t *found);
 #endif
 
 #ifdef ATCA_HAL_KIT_HID
 ATCA_STATUS hal_kit_hid_init(void *hal, ATCAIfaceCfg *cfg);
 ATCA_STATUS hal_kit_hid_post_init(ATCAIface iface);
-ATCA_STATUS hal_kit_hid_send(ATCAIface iface, uint8_t *txdata, int txlength);
+ATCA_STATUS hal_kit_hid_send(ATCAIface iface, uint8_t *txdata, uint16_t txlength);
 ATCA_STATUS hal_kit_hid_receive(ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength);
 ATCA_STATUS hal_kit_hid_wake(ATCAIface iface);
 ATCA_STATUS hal_kit_hid_idle(ATCAIface iface);
 ATCA_STATUS hal_kit_hid_sleep(ATCAIface iface);
 ATCA_STATUS hal_kit_hid_release(void *hal_data);
-ATCA_STATUS hal_kit_hid_discover_buses(int i2c_buses[], int max_buses);
-ATCA_STATUS hal_kit_hid_discover_devices(int busNum, ATCAIfaceCfg *cfg, int *found);
+ATCA_STATUS hal_kit_hid_discover_buses(uint16_t i2c_buses[], uint16_t max_buses);
+ATCA_STATUS hal_kit_hid_discover_devices(uint16_t busNum, ATCAIfaceCfg *cfg, uint16_t *found);
 #endif
 
 

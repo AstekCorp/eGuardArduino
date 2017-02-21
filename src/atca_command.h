@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief Atmel Crypto Auth device command object - this is a command builder only, it does
  * not send the command.  The result of a command method is a fully formed packet, ready to send
  * to the ATCAIFace object to dispatch.
@@ -72,7 +118,26 @@ ATCACommand newATCACommand(ATCADeviceType device_type);  // constructor
  * all method implementations should be proceeded by their Doxygen comment header
  *
  **/
+/* command definitions */
 
+//! minimum number of bytes in command (from count byte to second CRC byte)
+#define ATCA_CMD_SIZE_MIN       ((uint8_t)7)
+//! maximum size of command packet (Verify)
+#define ATCA_CMD_SIZE_MAX       ((uint8_t)4 * 36 + 7)
+//! status byte for success
+#define CMD_STATUS_SUCCESS      ((uint8_t)0x00)
+//! status byte after wake-up
+#define CMD_STATUS_WAKEUP       ((uint8_t)0x11)
+//! command parse error
+#define CMD_STATUS_BYTE_PARSE   ((uint8_t)0x03)
+//! command ECC error
+#define CMD_STATUS_BYTE_ECC     ((uint8_t)0x05)
+//! command execution error
+#define CMD_STATUS_BYTE_EXEC    ((uint8_t)0x0F)
+//! communication error
+#define CMD_STATUS_BYTE_COMM    ((uint8_t)0xFF)
+//! standard command processing delay
+#define CMD_DELAY				(1)
 
 // this is the ATCACommand parameter structure.  The caller to the command method must
 // initialize param1, param2 and data if appropriate.  The command method will fill in the rest
@@ -96,7 +161,7 @@ typedef struct {
 	uint8_t opcode;
 	uint8_t param1;     // often same as mode
 	uint16_t param2;
-	uint8_t crypto_data[130];  // includes 2-byte CRC.  data size is determined by largest possible data section of any
+	uint8_t crypto_data[ATCA_CMD_SIZE_MAX];  // includes 2-byte CRC.  data size is determined by largest possible data section of any
 	                    // command + crc (see: x08 verify data1 + data2 + data3 + data4)
 	                    // this is an explicit design trade-off (space) resulting in simplicity in use
 	                    // and implementation
@@ -112,27 +177,27 @@ typedef struct {
 } ATCAPacket;
 #pragma pack( pop, ATCAPacket)
 
-ATCA_STATUS atCheckMAC(ATCACommand cacmd, ATCAPacket *packet);
+ATCA_STATUS atCheckMAC(ATCAPacket *packet);
 ATCA_STATUS atCounter(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atDeriveKey(ATCACommand cacmd, ATCAPacket *packet, bool hasMAC );
-ATCA_STATUS atECDH(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atGenDig(ATCACommand cacmd, ATCAPacket *packet, bool hasMACKey );
-ATCA_STATUS atGenKey(ATCACommand cacmd, ATCAPacket *packet, bool isPubKey );
-ATCA_STATUS atHMAC(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atInfo(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atLock(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atMAC(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atNonce(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atPause(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atPrivWrite(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atRandom(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atRead(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atSHA(ATCACommand cacmd, ATCAPacket *packet );
-ATCA_STATUS atSign(ATCACommand cacmd, ATCAPacket *packet);
-ATCA_STATUS atUpdateExtra(ATCACommand cacmd, ATCAPacket *packet);
-ATCA_STATUS atVerify(ATCACommand cacmd, ATCAPacket *packet);
-ATCA_STATUS atWrite(ATCACommand cacmd, ATCAPacket *packet);
-ATCA_STATUS atWriteEnc(ATCACommand cacmd, ATCAPacket *packet);
+ATCA_STATUS atDeriveKey(ATCAPacket *packet, bool hasMAC);
+ATCA_STATUS atECDH(ATCAPacket *packet );
+ATCA_STATUS atGenDig(ATCAPacket *packet, bool hasMACKey);
+ATCA_STATUS atGenKey(ATCAPacket *packet, bool isPubKey);
+ATCA_STATUS atHMAC(ATCAPacket *packet );
+ATCA_STATUS atInfo(ATCAPacket *packet );
+ATCA_STATUS atLock(ATCAPacket *packet );
+ATCA_STATUS atMAC(ATCAPacket *packet );
+ATCA_STATUS atNonce(ATCAPacket *packet );
+ATCA_STATUS atPause(ATCAPacket *packet );
+ATCA_STATUS atPrivWrite(ATCAPacket *packet );
+ATCA_STATUS atRandom(ATCAPacket *packet );
+ATCA_STATUS atRead(ATCAPacket *packet );
+ATCA_STATUS atSHA(ATCAPacket *packet );
+ATCA_STATUS atSign(ATCAPacket *packet);
+ATCA_STATUS atUpdateExtra(ATCAPacket *packet);
+ATCA_STATUS atVerify(ATCAPacket *packet);
+ATCA_STATUS atWrite(ATCAPacket *packet);
+ATCA_STATUS atWriteEnc(ATCAPacket *packet);
 
 bool atIsSHAFamily( ATCADeviceType deviceType );
 bool atIsECCFamily( ATCADeviceType deviceType );
@@ -167,33 +232,14 @@ typedef enum {
 ATCA_STATUS atInitExecTimes(ATCACommand cacmd, ATCADeviceType device_type);
 uint16_t atGetExecTime( ATCACommand cacmd, ATCA_CmdMap cmd );
 
-void deleteATCACommand( ATCACommand * );      // destructor
+void deleteATCACommand( ATCACommand *cacmd );      // destructor
 /*---- end of ATCACommand ----*/
 
 // command helpers
 void atCRC( uint8_t length, uint8_t *data, uint8_t *crc);
-void atCalcCrc( ATCAPacket *pkt);
+void atCalcCrc( ATCAPacket *packet );
 uint8_t atCheckCrc(uint8_t *response);
 
-
-/* command definitions */
-
-//! minimum number of bytes in command (from count byte to second CRC byte)
-#define ATCA_CMD_SIZE_MIN       ((uint8_t)7)
-//! maximum size of command packet (Verify)
-#define ATCA_CMD_SIZE_MAX       ((uint8_t)4 * 36 + 7)
-//! status byte for success
-#define CMD_STATUS_SUCCESS      ((uint8_t)0x00)
-//! status byte after wake-up
-#define CMD_STATUS_WAKEUP       ((uint8_t)0x11)
-//! command parse error
-#define CMD_STATUS_BYTE_PARSE   ((uint8_t)0x03)
-//! command ECC error
-#define CMD_STATUS_BYTE_ECC     ((uint8_t)0x05)
-//! command execution error
-#define CMD_STATUS_BYTE_EXEC    ((uint8_t)0x0F)
-//! communication error
-#define CMD_STATUS_BYTE_COMM    ((uint8_t)0xFF)
 
 /** \brief
    @{ */
@@ -235,6 +281,11 @@ uint8_t atCheckCrc(uint8_t *response);
 #define ATCA_SHA_CONFIG_SIZE        (88)                                //!< size of configuration zone
 #define ATCA_OTP_SIZE               (64)                                //!< size of OTP zone
 #define ATCA_DATA_SIZE              (ATCA_KEY_COUNT * ATCA_KEY_SIZE)    //!< size of data zone
+#define ATCA_MAX_CERT_SIZE			(1024)								//!< max certificate buffer size
+
+#define ATCA_SLOT_COUNT				(16)								//!< number of slots
+#define ATCA_MAX_SLOT_SIZE			(416)								//!< size in bytes of biggest slot
+#define ATCA_KEY_SLOT_SIZE			(36)								//!< size in bytes of key slots
 
 #define ATCA_COUNT_SIZE             ((uint8_t)1)                        //!< Number of bytes in the command packet Count
 #define ATCA_CRC_SIZE               ((uint8_t)2)                        //!< Number of bytes in the command packet CRC
@@ -248,7 +299,7 @@ uint8_t atCheckCrc(uint8_t *response);
 
 #define ATCA_RSP_SIZE_MIN           ((uint8_t)4)                        //!< minimum number of bytes in response
 #define ATCA_RSP_SIZE_4             ((uint8_t)7)                        //!< size of response packet containing 4 bytes data
-#define ATCA_RSP_SIZE_72            ((uint8_t)75)                       //!< size of response packet containing 64 bytes data
+#define ATCA_RSP_SIZE_72            ((uint8_t)75)                       //!< size of response packet containing 72 bytes data
 #define ATCA_RSP_SIZE_64            ((uint8_t)67)                       //!< size of response packet containing 64 bytes data
 #define ATCA_RSP_SIZE_32            ((uint8_t)35)                       //!< size of response packet containing 32 bytes data
 #define ATCA_RSP_SIZE_MAX           ((uint8_t)75)                       //!< maximum size of response packet (GenKey and Verify command)
@@ -402,9 +453,7 @@ typedef enum {
 	GENKEY_MODE_DIGEST_IN_TEMPKEY = ((uint8_t) 0x10)        //!< Digest Calculation
 } enum_genkey_mode;
 /** @} */
-/** \name Definitions for the GENKEY Command
-   @{ */
-/** @} */
+
 
 
 /** \name Definitions for the HMAC Command
@@ -414,6 +463,8 @@ typedef enum {
 #define HMAC_COUNT                  ATCA_CMD_SIZE_MIN   //!< HMAC command packet size
 #define HMAC_MODE_SOURCE_FLAG_MATCH ((uint8_t)0x04)     //!< HMAC mode bit 2: match TempKey.SourceFlag
 #define HMAC_MODE_MASK              ((uint8_t)0x74)     //!< HMAC mode bits 0, 1, 3, and 7 are 0.
+#define HMAC_K0_IPAD				((uint8_t)0x36)     //!< HMAC key pad - Refer to fips-198.a.pdf
+#define HMAC_K0_OPAD				((uint8_t)0x5C)     //!< HMAC key pad - Refer to fips-198.a.pdf
 /** @} */
 
 /** \name Definitions for the Info Command
@@ -517,7 +568,7 @@ typedef enum {
 #define READ_ZONE_IDX               ATCA_PARAM1_IDX         //!< Read command index for zone
 #define READ_ADDR_IDX               ATCA_PARAM2_IDX         //!< Read command index for address
 #define READ_COUNT                  ATCA_CMD_SIZE_MIN       //!< Read command packet size
-#define READ_ZONE_MASK              ((uint8_t)0x83)         //!< Read zone bits 2 to 6 are 0.
+#define READ_ZONE_MASK              ((uint8_t)0x80)         //!< Read zone bits 2 to 6 are 0.
 /** @} */
 
 /** \name Definitions for the Sign Command
@@ -584,6 +635,27 @@ typedef enum {
 #define WRITE_ZONE_DATA             ((uint8_t)2)        //!< WRITE zone id data
 /** @} */
 
+/** \name Definitions for the CRC Command
+   @{ */
+#define CRC_POLYNOM					((uint16_t)0x8005)	//!< CRC polynomial
+#define CRC_SHIFT1					(0x01)
+#define CRC_SHIFT0					(0x00)
+#define MAXSHIFT					(1)
+#define ENDSHIFT					(15)
+/** @} */
+
+/** \name Definitions for the idle Command
+   @{ */
+#define IDLE_DATA					(0X02)				//!< IDLE data sent
+#define IDLE_LENGTH					(0x01)				//!< IDLE data length
+/** @} */
+
+/** \name Definitions for the sleep Command
+   @{ */
+#define SLEEP_DATA					(0X01)				//!< SLEEP data sent
+#define SLEEP_LENGTH				(0x01)				//!< SLEEP data length
+/** @} */
+
 /** \name Response Size Definitions
    @{ */
 #define CHECKMAC_RSP_SIZE           ATCA_RSP_SIZE_MIN   //!< response size of DeriveKey command
@@ -602,7 +674,7 @@ typedef enum {
 #define RANDOM_RSP_SIZE             ATCA_RSP_SIZE_32    //!< response size of Random command
 #define READ_4_RSP_SIZE             ATCA_RSP_SIZE_VAL   //!< response size of Read command when reading 4 bytes
 #define READ_32_RSP_SIZE            ATCA_RSP_SIZE_32    //!< response size of Read command when reading 32 bytes
-#define SIGN_RSP_SIZE               ATCA_RSP_SIZE_MAX   //!< response size of Sign command
+#define SIGN_RSP_SIZE               ATCA_RSP_SIZE_64   //!< response size of Sign command
 #define SHA_RSP_SIZE                ATCA_RSP_SIZE_32    //!< response size of SHA command
 #define UPDATE_RSP_SIZE             ATCA_RSP_SIZE_MIN   //!< response size of UpdateExtra command
 #define VERIFY_RSP_SIZE             ATCA_RSP_SIZE_MIN   //!< response size of UpdateExtra command
@@ -614,6 +686,28 @@ typedef enum {
 #define SHA_RSP_SIZE_SHORT          ATCA_RSP_SIZE_MIN   //!< response size of SHA command
 #define SHA_RSP_SIZE_LONG           ATCA_RSP_SIZE_32    //!< response size of SHA command
 /** @} */
+
+/** \name OTP Configuration Structure
+   @{ */
+#define OTPCONFIG_TYPE_SIZE			(2)					//!< Number of bytes allocated for configuration type
+#define OTPCONFIG_RESERVED1_SIZE	(11)				//!< Number of bytes allocated for future use hex portion
+#define OTPCONFIG_ASTEK_SIZE		(5)					//!< Number of bytes allocated for "ASTEK" ascii
+#define OTPCONFIG_DATE_SIZE			(2)					//!< Number of bytes allocated for date fiels
+#define OTPCONFIG_RESERVED2_SIZE	(5)					//!< Number of bytes allocated for future use ascii portion
+#define OTPCONFIG_DESCRIPTION_SIZE	(32)				//!< Number of bytes allocated for description field
+/** @} */
+
+/** \name Byte Manipulation
+   @{ */
+#define LO_NIBBLE(b) ((b) & 0x0F)
+#define HI_NIBBLE(b) (((b) >> 4) & 0x0F)
+
+#define LO_BYTE(b) ((b) & 0xFF)
+#define HI_BYTE(b) (((b) >> 8) & 0xFF)
+
+/** @} */
+
+
 #ifdef __cplusplus
 }
 #endif

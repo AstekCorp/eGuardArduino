@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief Atmel CryptoAuthentication device command builder - this is the main object that builds the command
  * byte strings for the given device.  It does not execute the command.  The basic flow is to call
  * a command method to build the command you want given the parameters and then send that byte string
@@ -92,7 +138,7 @@ ATCACommand newATCACommand( ATCADeviceType device_type )  // constructor
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atCheckMAC(ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atCheckMAC(ATCAPacket *packet )
 {
 	// Set the opcode & parameters
 	packet->opcode = ATCA_CHECKMAC;
@@ -128,20 +174,20 @@ ATCA_STATUS atCounter(ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] hasMAC  hasMAC determines if MAC data is present in the packet input
  * \return ATCA_STATUS
  */
-ATCA_STATUS atDeriveKey(ATCACommand cacmd, ATCAPacket *packet, bool hasMAC )
+ATCA_STATUS atDeriveKey(ATCAPacket *packet, bool hasMAC)
 {
 	// Set the opcode & parameters
 	packet->opcode = ATCA_DERIVE_KEY;
 
 	// hasMAC must be given since the packet does not have any implicit information to
 	// know if it has a mac or not unless the size is preset
-	switch ( hasMAC ) {
-	case true:
+	if (hasMAC)
+	{
 		packet->txsize = DERIVE_KEY_COUNT_LARGE;
-		break;
-	case false:
+	}
+	else
+	{
 		packet->txsize = DERIVE_KEY_COUNT_SMALL;
-		break;
 	}
 
 	packet->rxsize = DERIVE_KEY_RSP_SIZE;
@@ -154,7 +200,7 @@ ATCA_STATUS atDeriveKey(ATCACommand cacmd, ATCAPacket *packet, bool hasMAC )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atECDH(ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atECDH(ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -172,14 +218,14 @@ ATCA_STATUS atECDH(ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] hasMACKey
  * \return ATCA_STATUS
  */
-ATCA_STATUS atGenDig(ATCACommand cacmd, ATCAPacket *packet, bool hasMACKey )
+ATCA_STATUS atGenDig(ATCAPacket *packet, bool hasMACKey)
 {
 
 	// Set the opcode & parameters
 	packet->opcode = ATCA_GENDIG;
 
-	if ( packet->param1 == 0x03 ) // shared nonce mode
-		packet->txsize = GENDIG_COUNT + 32;
+	if ( packet->param1 == NONCE_MODE_MASK ) // shared nonce mode
+		packet->txsize = GENDIG_COUNT + GENDIG_OTHER_DATA_SIZE;
 	else if ( hasMACKey == true )
 		packet->txsize = GENDIG_COUNT_DATA;
 	else
@@ -197,19 +243,19 @@ ATCA_STATUS atGenDig(ATCACommand cacmd, ATCAPacket *packet, bool hasMACKey )
  * \param[in] isPubKey  indicates whether "other data" is present in packet
  * \return ATCA_STATUS
  */
-ATCA_STATUS atGenKey(ATCACommand cacmd, ATCAPacket *packet, bool isPubKey )
+ATCA_STATUS atGenKey(ATCAPacket *packet, bool isPubKey)
 {
 
 	// Set the opcode & parameters
 	packet->opcode = ATCA_GENKEY;
 
-	switch ( isPubKey ) {
-	case true:
+	if (isPubKey)
+	{
 		packet->txsize = GENKEY_COUNT_DATA;
-		break;
-	case false:
-		packet->txsize = GENKEY_COUNT;
-		break;
+	}
+	else
+	{
+		packet->txsize = GENKEY_COUNT;	
 	}
 
 	packet->rxsize = GENKEY_RSP_SIZE_LONG;
@@ -223,7 +269,7 @@ ATCA_STATUS atGenKey(ATCACommand cacmd, ATCAPacket *packet, bool isPubKey )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atHMAC(ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atHMAC(ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -240,7 +286,7 @@ ATCA_STATUS atHMAC(ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atInfo( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atInfo( ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -257,7 +303,7 @@ ATCA_STATUS atInfo( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atLock(  ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atLock(  ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -274,7 +320,7 @@ ATCA_STATUS atLock(  ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atMAC( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atMAC( ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -296,17 +342,17 @@ ATCA_STATUS atMAC( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atNonce( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atNonce( ATCAPacket *packet )
 {
 	// Set the opcode & parameters
 	// variable packet size
 	packet->opcode = ATCA_NONCE;
-	int mode = packet->param1 & 0x03;
+	int mode = packet->param1 & NONCE_MODE_MASK;
 
-	if ( (mode == 0 || mode == 1) ) {       // mode[0:1] == 0 | 1 then NumIn is 20 bytes
+	if ( (mode == NONCE_MODE_SEED_UPDATE || mode == NONCE_MODE_NO_SEED_UPDATE) ) {       // mode[0:1] == 0 | 1 then NumIn is 20 bytes
 		packet->txsize = NONCE_COUNT_SHORT; // 20 byte challenge
 		packet->rxsize = NONCE_RSP_SIZE_LONG;
-	} else if ( mode == 0x03 ) {            // NumIn is 32 bytes
+	} else if ( mode == NONCE_MODE_PASSTHROUGH ) {            // NumIn is 32 bytes
 		packet->txsize = NONCE_COUNT_LONG;  // 32 byte challenge
 		packet->rxsize = NONCE_RSP_SIZE_SHORT;
 	} else
@@ -321,7 +367,7 @@ ATCA_STATUS atNonce( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atPause( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atPause( ATCAPacket *packet )
 {
 	// Set the opcode & parameters
 	packet->opcode = ATCA_PAUSE;
@@ -337,7 +383,7 @@ ATCA_STATUS atPause( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atPrivWrite( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atPrivWrite( ATCAPacket *packet )
 {
 	// Set the opcode & parameters
 	packet->opcode = ATCA_PRIVWRITE;
@@ -353,7 +399,7 @@ ATCA_STATUS atPrivWrite( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atRandom( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atRandom( ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -370,7 +416,7 @@ ATCA_STATUS atRandom( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atRead( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atRead( ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -378,7 +424,7 @@ ATCA_STATUS atRead( ATCACommand cacmd, ATCAPacket *packet )
 	packet->txsize = READ_COUNT;
 
 	// variable response size based on read type
-	if ((packet->param1 & 0x80) == 0 )
+	if ((packet->param1 & READ_ZONE_MASK) == 0 )
 		packet->rxsize = READ_4_RSP_SIZE;
 	else
 		packet->rxsize = READ_32_RSP_SIZE;
@@ -392,34 +438,37 @@ ATCA_STATUS atRead( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atSHA( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atSHA( ATCAPacket *packet )
 {
 	if ( packet->param2 > SHA_BLOCK_SIZE )
 		return ATCA_BAD_PARAM;
 
-	if ( packet->param1 == 0x01 && packet->param2 != SHA_BLOCK_SIZE )
+	if ( packet->param1 == SHA_MODE_SHA256_UPDATE && packet->param2 != SHA_BLOCK_SIZE )
 		return ATCA_BAD_PARAM;                                              // updates should always have 64 bytes of data
 
-	if ( packet->param1 == 0x02 && packet->param2 > SHA_BLOCK_SIZE - 1 )    // END should be 0-63 bytes
+	if ( packet->param1 == SHA_MODE_SHA256_END && packet->param2 > SHA_BLOCK_SIZE - 1 )    // END should be 0-63 bytes
 		return ATCA_BAD_PARAM;
 
 	// Set the opcode & parameters
 	packet->opcode = ATCA_SHA;
 
 	switch ( packet->param1 ) {
-	case 0x00: // START
+	case SHA_MODE_SHA256_START: // START
 		packet->rxsize = SHA_RSP_SIZE_SHORT;
 		packet->txsize = SHA_COUNT_LONG;
 		break;
-	case 0x01: // UPDATE
+	case SHA_MODE_SHA256_UPDATE: // UPDATE
 		packet->rxsize = SHA_RSP_SIZE_SHORT;
 		packet->txsize = SHA_COUNT_LONG + SHA_BLOCK_SIZE;
 		break;
-	case 0x02: // END
+	case SHA_MODE_SHA256_END: // END
 		packet->rxsize = SHA_RSP_SIZE_LONG;
 		// check the given packet for a size variable in param2.  If it is > 0, it should
 		// be 0-63, incorporate that size into the packet
 		packet->txsize = SHA_COUNT_LONG + packet->param2;
+		break;
+	default:
+		return ATCA_BAD_PARAM;
 		break;
 	}
 
@@ -432,7 +481,7 @@ ATCA_STATUS atSHA( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atSign( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atSign( ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -451,7 +500,7 @@ ATCA_STATUS atSign( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atUpdateExtra( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atUpdateExtra( ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -468,7 +517,7 @@ ATCA_STATUS atUpdateExtra( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atVerify( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atVerify( ATCAPacket *packet )
 {
 
 	// Set the opcode & parameters
@@ -476,21 +525,22 @@ ATCA_STATUS atVerify( ATCACommand cacmd, ATCAPacket *packet )
 
 	// variable packet size based on mode
 	switch ( packet->param1 ) {
-	case 0:  // Stored mode
+	case VERIFY_MODE_STORED:  // Stored mode
 		packet->txsize = VERIFY_256_STORED_COUNT;
 		break;
-	case 1:  // ValidateExternal mode
+	case VERIFY_MODE_VALIDATEEXTERNAL:  // ValidateExternal mode
 		packet->txsize = VERIFY_256_EXTERNAL_COUNT;
 		break;
-	case 2:  // External mode
+	case VERIFY_MODE_EXTERNAL:  // External mode
 		packet->txsize = VERIFY_256_EXTERNAL_COUNT;
 		break;
-	case 3:     // Validate mode
-	case 7:     // Invalidate mode
+	case VERIFY_MODE_VALIDATE:     // Validate mode
+	case VERIFY_MODE_INVALIDATE:     // Invalidate mode
 		packet->txsize = VERIFY_256_VALIDATE_COUNT;
 		break;
 	default:
 		return ATCA_BAD_PARAM;
+		break;
 	}
 	packet->rxsize = VERIFY_RSP_SIZE;
 
@@ -503,7 +553,7 @@ ATCA_STATUS atVerify( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atWrite( ATCACommand cacmd, ATCAPacket *packet )
+ATCA_STATUS atWrite( ATCAPacket *packet )
 {
 	int macsize;
 	int writesize;
@@ -511,16 +561,16 @@ ATCA_STATUS atWrite( ATCACommand cacmd, ATCAPacket *packet )
 	// Set the opcode & parameters
 	packet->opcode = ATCA_WRITE;
 
-	macsize = ( packet->param1 & 0x40 ? 32 : 0 );  // if encrypted, use MAC
-	writesize = ( packet->param1 & 0x80 ? 32 : 4 );
+	macsize = ( packet->param1 & WRITE_ZONE_WITH_MAC ? ATCA_ZONE_ACCESS_32 : 0 );  // if encrypted, use MAC
+	writesize = ( packet->param1 & ATCA_ZONE_READWRITE_32 ? ATCA_ZONE_ACCESS_32 : ATCA_ZONE_ACCESS_4 );
 
-	if ( macsize == 32 && writesize == 32 )
+	if ( macsize == WRITE_ZONE_WITH_MAC && writesize == ATCA_ZONE_ACCESS_32 )
 		packet->txsize = WRITE_COUNT_LONG_MAC;
-	else if ( macsize == 32 && writesize == 4 )
+	else if ( macsize == WRITE_ZONE_WITH_MAC && writesize == ATCA_ZONE_ACCESS_4 )
 		packet->txsize = WRITE_COUNT_SHORT_MAC;
-	else if ( macsize == 0 && writesize == 32 )
+	else if ( macsize == 0 && writesize == ATCA_ZONE_ACCESS_32 )
 		packet->txsize = WRITE_COUNT_LONG;
-	else if ( macsize == 0 && writesize == 4 )
+	else if ( macsize == 0 && writesize == ATCA_ZONE_ACCESS_4 )
 		packet->txsize = WRITE_COUNT_SHORT;
 
 	packet->rxsize = WRITE_RSP_SIZE;
@@ -533,7 +583,7 @@ ATCA_STATUS atWrite( ATCACommand cacmd, ATCAPacket *packet )
  * \param[in] packet  pointer to the packet containing the command being built
  * \return ATCA_STATUS
  */
-ATCA_STATUS atWriteEnc(ATCACommand cacmd, ATCAPacket *packet)
+ATCA_STATUS atWriteEnc(ATCAPacket *packet)
 {
 	// Set the opcode & parameters
 	packet->opcode = ATCA_WRITE;
@@ -658,21 +708,21 @@ void atCRC( uint8_t length, uint8_t *data, uint8_t *crc)
 {
 	uint8_t counter;
 	uint16_t crc_register = 0;
-	uint16_t polynom = 0x8005;
+	uint16_t polynom = CRC_POLYNOM;
 	uint8_t shift_register;
 	uint8_t data_bit, crc_bit;
 
 	for (counter = 0; counter < length; counter++) {
-		for (shift_register = 0x01; shift_register > 0x00; shift_register <<= 1) {
-			data_bit = (data[counter] & shift_register) ? 1 : 0;
-			crc_bit = crc_register >> 15;
-			crc_register <<= 1;
+		for (shift_register = CRC_SHIFT1; shift_register > CRC_SHIFT0; shift_register <<= MAXSHIFT) {
+			data_bit = (data[counter] & shift_register) ? MAXSHIFT : 0;
+			crc_bit = crc_register >> ENDSHIFT;
+			crc_register <<= MAXSHIFT;
 			if (data_bit != crc_bit)
 				crc_register ^= polynom;
 		}
 	}
-	crc[0] = (uint8_t)(crc_register & 0x00FF);
-	crc[1] = (uint8_t)(crc_register >> 8);
+	crc[0] = (uint8_t)(LO_BYTE(crc_register)); 
+	crc[1] = (uint8_t)(HI_BYTE(crc_register));
 }
 
 
@@ -754,26 +804,26 @@ bool atIsECCFamily( ATCADeviceType deviceType )
 
 ATCA_STATUS isATCAError( uint8_t *data )
 {
-	uint8_t good[4] = { 0x04, 0x00, 0x03, 0x40 };
+	uint8_t good[ATCA_RSP_SIZE_MIN] = { 0x04, 0x00, 0x03, 0x40 };
 
-	if ( memcmp( data, good, 4 ) == 0 )
+	if ( memcmp( data, good, ATCA_RSP_SIZE_MIN ) == 0 )
 		return ATCA_SUCCESS;
 
-	if ( data[0] == 0x04 ) {    // error packets are always 4 bytes long
+	if ( data[0] == ATCA_RSP_SIZE_MIN ) {    // error packets are always 4 bytes long
 		switch ( data[1] ) {
-		case 0x01:              // checkmac or verify failed
+		case CHECKMAC_CMD_MISMATCH:              // checkmac or verify failed
 			return ATCA_CHECKMAC_VERIFY_FAILED;
 			break;
-		case 0x03: // command received byte length, opcode or parameter was illegal
+		case CMD_STATUS_BYTE_PARSE: // command received byte length, opcode or parameter was illegal
 			return ATCA_BAD_OPCODE;
 			break;
-		case 0x0f: // chip can't execute the command
+		case CMD_STATUS_BYTE_EXEC: // chip can't execute the command
 			return ATCA_EXECUTION_ERROR;
 			break;
-		case 0x11: // chip was successfully woken up
+		case CMD_STATUS_WAKEUP: // chip was successfully woken up
 			return ATCA_WAKE_SUCCESS;
 			break;
-		case 0xff: // bad crc found or other comm error
+		case CMD_STATUS_BYTE_COMM: // bad crc found or other comm error
 			return ATCA_STATUS_CRC;
 			break;
 		default:

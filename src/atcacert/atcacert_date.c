@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief Date handling with regard to certificates.
  *
  * Copyright (c) 2015 Atmel Corporation. All rights reserved.
@@ -43,6 +89,7 @@
 #include "atcacert_date.h"
 #include <string.h>
 
+
 int atcacert_date_enc( atcacert_date_format_t format,
                        const atcacert_tm_utc_t*  timestamp,
                        uint8_t*                  formatted_date,
@@ -57,15 +104,15 @@ int atcacert_date_enc( atcacert_date_format_t format,
 	}
 	*formatted_date_size = ATCACERT_DATE_FORMAT_SIZES[format];
 	if (formatted_date == NULL)
-		return ATCACERT_E_SUCCESS; // Caller just wanted
+		return ATCA_SUCCESS; // Caller just wanted
 
 	switch (format) {
-	case DATEFMT_ISO8601_SEP:     return atcacert_date_enc_iso8601_sep(timestamp, formatted_date);
-	case DATEFMT_RFC5280_UTC:     return atcacert_date_enc_rfc5280_utc(timestamp, formatted_date);
-	case DATEFMT_POSIX_UINT32_BE: return atcacert_date_enc_posix_uint32_be(timestamp, formatted_date);
-	case DATEFMT_POSIX_UINT32_LE: return atcacert_date_enc_posix_uint32_le(timestamp, formatted_date);
-	case DATEFMT_RFC5280_GEN:     return atcacert_date_enc_rfc5280_gen(timestamp, formatted_date);
-	default: return ATCACERT_E_BAD_PARAMS;
+	case DATEFMT_ISO8601_SEP:     return atcacert_date_enc_iso8601_sep(timestamp, formatted_date); break;
+	case DATEFMT_RFC5280_UTC:     return atcacert_date_enc_rfc5280_utc(timestamp, formatted_date); break;
+	case DATEFMT_POSIX_UINT32_BE: return atcacert_date_enc_posix_uint32_be(timestamp, formatted_date); break;
+	case DATEFMT_POSIX_UINT32_LE: return atcacert_date_enc_posix_uint32_le(timestamp, formatted_date); break;
+	case DATEFMT_RFC5280_GEN:     return atcacert_date_enc_rfc5280_gen(timestamp, formatted_date); break;
+	default: return ATCACERT_E_BAD_PARAMS; break;
 	}
 
 	return ATCACERT_E_BAD_PARAMS;
@@ -83,15 +130,15 @@ int atcacert_date_dec( atcacert_date_format_t format,
 		return ATCACERT_E_DECODING_ERROR; // Not enough data to parse this date format
 
 	switch (format) {
-	case DATEFMT_ISO8601_SEP:     return atcacert_date_dec_iso8601_sep(formatted_date, timestamp);
-	case DATEFMT_RFC5280_UTC:     return atcacert_date_dec_rfc5280_utc(formatted_date, timestamp);
-	case DATEFMT_POSIX_UINT32_BE: return atcacert_date_dec_posix_uint32_be(formatted_date, timestamp);
-	case DATEFMT_POSIX_UINT32_LE: return atcacert_date_dec_posix_uint32_le(formatted_date, timestamp);
-	case DATEFMT_RFC5280_GEN:     return atcacert_date_dec_rfc5280_gen(formatted_date, timestamp);
-	default: return ATCACERT_E_BAD_PARAMS;
+	case DATEFMT_ISO8601_SEP:     return atcacert_date_dec_iso8601_sep(formatted_date, timestamp); break;
+	case DATEFMT_RFC5280_UTC:     return atcacert_date_dec_rfc5280_utc(formatted_date, timestamp); break;
+	case DATEFMT_POSIX_UINT32_BE: return atcacert_date_dec_posix_uint32_be(formatted_date, timestamp); break;
+	case DATEFMT_POSIX_UINT32_LE: return atcacert_date_dec_posix_uint32_le(formatted_date, timestamp); break;
+	case DATEFMT_RFC5280_GEN:     return atcacert_date_dec_rfc5280_gen(formatted_date, timestamp); break;
+	default: return ATCACERT_E_BAD_PARAMS; break;
 	}
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_get_max_date( atcacert_date_format_t format, atcacert_tm_utc_t* timestamp )
@@ -146,10 +193,12 @@ int atcacert_date_get_max_date( atcacert_date_format_t format, atcacert_tm_utc_t
 		timestamp->tm_sec  = 59;
 		break;
 
-	default: return ATCACERT_E_BAD_PARAMS;
+	default: 
+		return ATCACERT_E_BAD_PARAMS; 
+		break;
 	}
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 /**
@@ -268,7 +317,7 @@ int atcacert_date_enc_iso8601_sep( const atcacert_tm_utc_t*  timestamp,
 
 	*(cur_pos++) = 'Z';
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_dec_iso8601_sep( const uint8_t formatted_date[DATEFMT_ISO8601_SEP_SIZE],
@@ -332,7 +381,7 @@ int atcacert_date_dec_iso8601_sep( const uint8_t formatted_date[DATEFMT_ISO8601_
 	if (*(cur_pos++) != 'Z')
 		return ATCACERT_E_DECODING_ERROR; // Unexpected UTC marker
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_enc_rfc5280_utc( const atcacert_tm_utc_t*  timestamp,
@@ -376,7 +425,7 @@ int atcacert_date_enc_rfc5280_utc( const atcacert_tm_utc_t*  timestamp,
 
 	*(cur_pos++) = 'Z';
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_dec_rfc5280_utc( const uint8_t formatted_date[DATEFMT_RFC5280_UTC_SIZE],
@@ -429,7 +478,7 @@ int atcacert_date_dec_rfc5280_utc( const uint8_t formatted_date[DATEFMT_RFC5280_
 	if (*(cur_pos++) != 'Z')
 		return ATCACERT_E_DECODING_ERROR; // Unexpected UTC marker
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_enc_rfc5280_gen( const atcacert_tm_utc_t*  timestamp,
@@ -469,7 +518,7 @@ int atcacert_date_enc_rfc5280_gen( const atcacert_tm_utc_t*  timestamp,
 
 	*(cur_pos++) = 'Z';
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_dec_rfc5280_gen( const uint8_t formatted_date[DATEFMT_RFC5280_GEN_SIZE],
@@ -518,7 +567,7 @@ int atcacert_date_dec_rfc5280_gen( const uint8_t formatted_date[DATEFMT_RFC5280_
 	if (*(cur_pos++) != 'Z')
 		return ATCACERT_E_DECODING_ERROR; // Unexpected UTC marker
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 static int is_leap_year(int year)
@@ -654,42 +703,9 @@ static int atcacert_date_enc_posix_uint32(const atcacert_tm_utc_t* timestamp, ui
 		}
 	}
 
-//#ifdef WIN32
-//	timestamp_nc = *timestamp;
-//	posix_time = _mkgmtime(&timestamp_nc);
-//	if (posix_time == -1)
-//		return ATCACERT_E_INVALID_DATE;
-//#elif defined _BSD_SOURCE || defined _SVID_SOURCE
-//	timestamp_nc = *timestamp;
-//	posix_time = timegm(&timestamp_nc);
-//	if (posix_time == -1)
-//		return ATCACERT_E_INVALID_DATE;
-//#else
-//	// In order for this to work, we need to make sure mktime is using GMT. Since this can
-//	// vary from system to system, I'm putting this "assert" in every time since it may not
-//	// be caught early on.
-//	memset(&timestamp_nc, 0, sizeof(timestamp_nc));
-//	timestamp_nc.tm_year = 2013 - 1900;
-//	timestamp_nc.tm_mon = 11 - 1;
-//	timestamp_nc.tm_mday = 10;
-//	timestamp_nc.tm_hour = 9;
-//	timestamp_nc.tm_min = 8;
-//	timestamp_nc.tm_sec = 7;
-//	posix_time = mktime(&timestamp_nc);
-//	if (posix_time != 1384074487)
-//		return ATCACERT_E_UNIMPLEMENTED; // mktime isn't using GMT as the timezone, this needs to be fixed
-//
-//	timestamp_nc = *timestamp;
-//	posix_time = mktime(&timestamp_nc);
-//	if (posix_time == -1)
-//		return ATCACERT_E_INVALID_DATE;
-//#endif
-//
-//	*posix_uint32 = (uint32_t)posix_time;
-
 	*posix_uint32 = atcacert_mkgmtime32(timestamp);
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_enc_posix_uint32_be( const atcacert_tm_utc_t*  timestamp,
@@ -702,7 +718,7 @@ int atcacert_date_enc_posix_uint32_be( const atcacert_tm_utc_t*  timestamp,
 		return ATCACERT_E_BAD_PARAMS;
 
 	ret = atcacert_date_enc_posix_uint32(timestamp, &posix_uint32);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	formatted_date[0] = (uint8_t)((posix_uint32 >> 24) & 0xFF);
@@ -710,37 +726,15 @@ int atcacert_date_enc_posix_uint32_be( const atcacert_tm_utc_t*  timestamp,
 	formatted_date[2] = (uint8_t)((posix_uint32 >> 8) & 0xFF);
 	formatted_date[3] = (uint8_t)((posix_uint32 >> 0) & 0xFF);
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 static int atcacert_date_dec_posix_uint32( uint32_t posix_uint32,
                                            atcacert_tm_utc_t*  timestamp)
 {
-//#ifdef WIN32
-//	time_t posix_time = (time_t)posix_uint32;
-//	errno_t ret = 0;
-//
-//	if (timestamp == NULL)
-//		return ATCACERT_E_BAD_PARAMS;
-//
-//	memset(timestamp, 0, sizeof(*timestamp));
-//	ret = gmtime_s(timestamp, &posix_time);
-//	if (ret != 0)
-//		return ATCACERT_E_DECODING_ERROR; // Failed to convert to timestamp structure
-//#else
-//	time_t posix_time = (time_t)posix_uint32;
-//	atcacert_tm_utc_t* ret = NULL;
-//	if (timestamp == NULL)
-//		return ATCACERT_E_BAD_PARAMS;
-//
-//	memset(timestamp, 0, sizeof(*timestamp));
-//	ret = gmtime_r(&posix_time, timestamp);
-//	if (ret == NULL)
-//		return ATCACERT_E_DECODING_ERROR; // Failed to convert to timestamp structure
-//#endif
 	atcacert_gmtime32(&posix_uint32, timestamp);
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_dec_posix_uint32_be( const uint8_t formatted_date[DATEFMT_POSIX_UINT32_BE_SIZE],
@@ -770,7 +764,7 @@ int atcacert_date_enc_posix_uint32_le( const atcacert_tm_utc_t*  timestamp,
 		return ATCACERT_E_BAD_PARAMS;
 
 	ret = atcacert_date_enc_posix_uint32(timestamp, &posix_uint32);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	formatted_date[0] = (uint8_t)((posix_uint32 >> 0) & 0xFF);
@@ -778,7 +772,7 @@ int atcacert_date_enc_posix_uint32_le( const atcacert_tm_utc_t*  timestamp,
 	formatted_date[2] = (uint8_t)((posix_uint32 >> 16) & 0xFF);
 	formatted_date[3] = (uint8_t)((posix_uint32 >> 24) & 0xFF);
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_dec_posix_uint32_le( const uint8_t formatted_date[DATEFMT_POSIX_UINT32_LE_SIZE],
@@ -839,7 +833,7 @@ int atcacert_date_enc_compcert( const atcacert_tm_utc_t*  issue_date,
 	enc_dates[2] = (enc_dates[2] & 0x1F) | ((issue_date->tm_hour & 0x1F) << 5);
 	enc_dates[2] = (enc_dates[2] & 0xE0) | (expire_years & 0x1F);
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_date_dec_compcert( const uint8_t enc_dates[3],
@@ -847,7 +841,7 @@ int atcacert_date_dec_compcert( const uint8_t enc_dates[3],
                                 atcacert_tm_utc_t*      issue_date,
                                 atcacert_tm_utc_t*      expire_date)
 {
-	int ret = ATCACERT_E_SUCCESS;
+	int ret = ATCA_SUCCESS;
 	uint8_t expire_years = 0;
 
 	/*
@@ -885,9 +879,9 @@ int atcacert_date_dec_compcert( const uint8_t enc_dates[3],
 	}else {
 		// Expire years of 0, means no expiration. Set to max date for the given expiration date format.
 		ret = atcacert_date_get_max_date(expire_date_format, expire_date);
-		if (ret != ATCACERT_E_SUCCESS)
+		if (ret != ATCA_SUCCESS)
 			return ret;
 	}
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }

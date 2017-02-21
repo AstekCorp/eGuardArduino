@@ -1,126 +1,110 @@
+/**
+ * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License
+ * 
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ * 
+ * \astek_eguard_library_license_stop
+ */
 #include "secureboot.h"
 #include "atcacert/atcacert_client.h"
 #include "atcacert/atcacert_host_hw.h"
 #include "atcacert/atcacert_def.h"
 #include "crypto/atca_crypto_sw_sha2.h"
-#include "Authentication/cert_def_1_signer.h"
-#include "Authentication/cert_def_2_device.h"
-
-
-extern const uint8_t g_signer_1_ca_public_key[64];
+#include "custom/cert_def_1_signer.h"
+#include "custom/cert_def_2_device.h"
+#include "custom/custom_auth_def.h"
+#include "authentication/Authenticate.h"
 
 
 /*brief: generates all parameters to be saved into flash for secure boot operation
- *param[out] params			- ptr to secure boot parameters structure
- *param[in]  app_tbs_digest - ptr to application to be signed digest
- *param[in]  app_size       - ptr to application image size value
+ *param[out] params			- Pointer to secure boot parameters structure
+ *param[in]  app_tbs_digest - Pointer to application to be signed digest
+ *param[in]  app_size       - Pointer to application image size value
  *return     ATCA_STATUS
 */
-ATCA_STATUS get_boot_params(secureboot_params* params, uint8_t* app_tbs_digest, uint32_t app_size)
+
+
+
+ATCA_STATUS secureboot_verify_fw_img(pki_chain_auth_struct* params, uint8_t* AppImage)
 {
 	ATCA_STATUS ret = ATCA_UNIMPLEMENTED;
-	/** \brief global variables for signer certificate */
-	uint8_t g_signer_cert[1024];
-	size_t  g_signer_cert_size = sizeof(g_signer_cert);
-	uint8_t signer_pubkey[64];
-	
-	/** \brief global storage for device certificate */
-	uint8_t g_device_cert[1024];
-	size_t  g_device_cert_size = sizeof(g_device_cert);
-	
-	//Retrieve root public key
-	memcpy(params->root_pubkey, g_signer_1_ca_public_key, 64);
-	
-	//Generate signer certificate
-	ret = atcacert_read_cert(&g_cert_def_1_signer, params->root_pubkey, &g_signer_cert, &g_signer_cert_size);
-	if (ret != ATCA_SUCCESS) return ret;
-	
-	//Extract signer public key
-	ret = atcacert_get_subj_public_key(&g_cert_def_1_signer, &g_signer_cert, g_signer_cert_size, signer_pubkey);
-	if (ret != ATCA_SUCCESS) return ret;
-	
-	//Sanity check for signer certificate size
-	if (g_signer_cert_size > SIGNER_CERT_SIZE)
-	{
-		return ATCACERT_E_UNEXPECTED_ELEM_SIZE;
-	}else
-	{
-		//Retrieve signer certificate
-		memcpy(params->signer_cert, g_signer_cert, SIGNER_CERT_SIZE);
-	}
-
-	//Generate device certificate
-	ret = atcacert_read_cert(&g_cert_def_2_device, signer_pubkey, &g_device_cert, &g_device_cert_size);
-	if (ret != ATCA_SUCCESS) return ret;
-	
-	//Sanity check for device certificate size
-	if (g_device_cert_size > DEVICE_CERT_SIZE)
-	{
-		return ATCACERT_E_UNEXPECTED_ELEM_SIZE;
-	}else
-	{
-		//Retrieve device certificate
-		memcpy(params->device_cert, g_device_cert, DEVICE_CERT_SIZE);
-	}
-	
-	//Assign application image size
-	params->appimg_size = app_size;
-	
-	//sign application image digest
-	ret = atcacert_get_response(g_cert_def_2_device.private_key_slot, app_tbs_digest, params->appimg_signature);
-	if (ret != ATCA_SUCCESS) return ret;
-	
-	
-	return ret;
-}
-
-/*brief: Checks application to be run before jumping to application section. 
- *This should be called in booloader section before authorizing application to run
- *param[in] params			- ptr to secure boot parameters structure, generate from generate boot method using astek usb signer
- *param[in] AppImage		- ptr to application image
- *return     ATCA_STATUS
-*/
-ATCA_STATUS secureboot_check(secureboot_params* params, uint8_t* AppImage)
-{
-	ATCA_STATUS ret = ATCA_UNIMPLEMENTED;
-	uint8_t signer_pubkey[64];
-	uint8_t device_pubkey[64];
-	uint8_t digest[32];
+	uint8_t signer_pubkey[ATCA_PUB_KEY_SIZE];
+	uint8_t device_pubkey[ATCA_PUB_KEY_SIZE];
+	uint8_t digest[ATCA_SHA_DIGEST_SIZE];
 	bool is_verified = false;
 	
 	//Check root public keys match
-	if ( memcmp( &(params->root_pubkey), &g_signer_1_ca_public_key, 64 ) != 0 )
+	if ( memcmp( &(params->root_pubkey), &g_signer_1_ca_public_key, ATCA_PUB_KEY_SIZE ) != 0 )
 	{
 		return ATCA_INVALID_ID;
 	}
 	
 	/*Validate signer certificate against root public key*/
-	ret = atcacert_verify_cert_hw(&g_cert_def_1_signer, &params->signer_cert, SIGNER_CERT_SIZE, params->root_pubkey);
+	ret = atcacert_verify_cert_hw(&g_cert_def_1_signer, &params->signer_cert[0], SIGNER_CERT_SIZE, params->root_pubkey);
 	if (ret != ATCA_SUCCESS) return ret;
 	
 	/*Extract signer public key*/
-	ret = atcacert_get_subj_public_key(&g_cert_def_1_signer, &params->signer_cert, SIGNER_CERT_SIZE, signer_pubkey);
+	ret = atcacert_get_subj_public_key(&g_cert_def_1_signer, &params->signer_cert[0], SIGNER_CERT_SIZE, signer_pubkey);
 	if (ret != ATCA_SUCCESS) return ret;
 	
 	/*Validate the device cert against signer key*/
-	ret = atcacert_verify_cert_hw(&g_cert_def_2_device, &params->device_cert, DEVICE_CERT_SIZE, signer_pubkey);
+	ret = atcacert_verify_cert_hw(&g_cert_def_2_device, &params->device_cert[0], DEVICE_CERT_SIZE, signer_pubkey);
 	if (ret != ATCA_SUCCESS) return ret;
 	
 	/*Extract device public key.*/
-	ret = atcacert_get_subj_public_key(&g_cert_def_2_device, &params->device_cert, DEVICE_CERT_SIZE, device_pubkey);
+	ret = atcacert_get_subj_public_key(&g_cert_def_2_device, &params->device_cert[0], DEVICE_CERT_SIZE, device_pubkey);
+	if (ret != ATCA_SUCCESS) return ret;
+
+	/*Check device public key matches tag_signer_pubkey*/
+	if ( memcmp( &device_pubkey[0], &tag_signer_pubkey, ATCA_PUB_KEY_SIZE ) != 0 )
+	{
+		return ATCA_INVALID_ID;
+	}
+	
+	/*Calculate app digest*/
+	ret = atcac_sw_sha2_256(AppImage, params->msg_size, digest);
 	if (ret != ATCA_SUCCESS) return ret;
 	
-	//Calculate app digest
-	ret = atcac_sw_sha2_256(AppImage, params->appimg_size, digest);
-	if (ret != ATCACERT_E_SUCCESS)
-	return ret;
-	
-	//Verify digest against signature
-	ret = atcab_verify_extern(&digest, &(params->appimg_signature), &device_pubkey, &is_verified);
-	if (ret != ATCA_SUCCESS)
-	return ret;
+	/*Verify digest against signature*/
+	ret = atcab_verify_extern(&digest[0], &(params->msg_signature[0]), &tag_signer_pubkey[0], &is_verified);
+	if (ret != ATCA_SUCCESS) return ret;
 
-	return is_verified ? ATCACERT_E_SUCCESS : ATCACERT_E_VERIFY_FAILED;
+	return is_verified ? ATCA_SUCCESS : ATCACERT_E_VERIFY_FAILED;
 }
 
 

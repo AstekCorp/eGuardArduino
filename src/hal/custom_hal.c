@@ -1,6 +1,6 @@
 #include "atca_hal.h"
 #include "hal/atca_hal.h"
-#include "astek_hal.h"
+#include "custom_hal.h"
 #include "atca_device.h"
 #include <avr/io.h>
 #include "twi.h"
@@ -9,42 +9,18 @@
 //! \internal Pointer to the applicative TWI receive buffer.
 static volatile uint8_t *twim_rx_data = NULL;
 
-/** \brief default configuration for crypto IC devices */
-ATCAIfaceCfg cfg_device_f0 = {
-	.iface_type				= ATCA_I2C_IFACE,
-	.devtype				= ATECC508A,
-	.atcai2c.slave_address	= 0xF0,
-	.atcai2c.bus			= 2,
-	.atcai2c.baud			= 400000,
+ATCAIfaceCfg device_e0 = {
+	.iface_type       = ATCA_I2C_IFACE,
+	.devtype        = ATECC508A,
+	.atcai2c.slave_address  = 0xE0,
+	.atcai2c.bus      = 2,
+	.atcai2c.baud     = 400000,
 	//.atcai2c.baud = 100000,
-	.wake_delay				= 800,
-	.rx_retries				= 20
+	.wake_delay       = 800,
+	.rx_retries       = 20
 };
 
-ATCAIfaceCfg cfg_device_e0 = {
-	.iface_type				= ATCA_I2C_IFACE,
-	.devtype				= ATECC508A,
-	.atcai2c.slave_address	= 0xE0,
-	.atcai2c.bus			= 2,
-	.atcai2c.baud			= 400000,
-	//.atcai2c.baud = 100000,
-	.wake_delay				= 800,
-	.rx_retries				= 20
-
-};
-
-ATCAIfaceCfg cfg_device_c0 = {
-	.iface_type				= ATCA_I2C_IFACE,
-	.devtype				= ATECC508A,
-	.atcai2c.slave_address	= 0xC0,
-	.atcai2c.bus			= 2,
-	.atcai2c.baud			= 400000,
-	//.atcai2c.baud = 100000,
-	.wake_delay				= 800,
-	.rx_retries				= 20
-
-};
-ATCAIfaceCfg *cfg_eGuard = &cfg_device_e0;
+ATCAIfaceCfg *cfg_eGuard = &device_e0;
 
 /*Timer functions*/
 /*Examples use atmel ASF supplied routines*/
@@ -220,7 +196,7 @@ ATCA_STATUS twi_master_write(const twi_package_t *packet)
  * \param[in] txlength  number of bytes to send
  * \return ATCA_STATUS
  */
-ATCA_STATUS i2c_master_write(ATCAIface iface, uint8_t *txdata, int txlength)
+ATCA_STATUS i2c_master_write(ATCAIface iface, uint8_t *txdata, uint16_t txlength)
 {	
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
 
@@ -420,12 +396,12 @@ ATCA_STATUS hal_i2c_release( void *hal_data )
 	/* implement your code here */
 }
 
-ATCA_STATUS hal_i2c_discover_buses(int i2c_buses[], int max_buses)
+ATCA_STATUS hal_i2c_discover_buses(uint16_t i2c_buses[], uint16_t max_buses)
 {
 	return ATCA_UNIMPLEMENTED;
 }
 
-ATCA_STATUS hal_i2c_discover_devices(int busNum, ATCAIfaceCfg cfg[], int *found )
+ATCA_STATUS hal_i2c_discover_devices(uint16_t busNum, ATCAIfaceCfg cfg[], uint16_t *found )
 {
 
 	return ATCA_UNIMPLEMENTED;

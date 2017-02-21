@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief Host side methods to support CryptoAuth computations
  *
  * \copyright Copyright (c) 2015 Atmel Corporation. All rights reserved.
@@ -55,12 +101,12 @@ uint8_t *atcah_include_data(struct atca_include_data_in_out *param)
 		param->p_temp += ATCA_OTP_SIZE_8 + ATCA_OTP_SIZE_3;
 	}else {
 		if (param->mode & MAC_MODE_INCLUDE_OTP_64)
-			memcpy(param->p_temp, param->otp, ATCA_OTP_SIZE_8);         // use 8 bytes OTP[0:7] for (6)
+			memcpy(param->p_temp, param->otp, ATCA_OTP_SIZE_8);         // use 8 bytes "OTP[0:7] for (6)"
 		else
-			memset(param->p_temp, 0, ATCA_OTP_SIZE_8);                  // use 8 zeros for (6)
+			memset(param->p_temp, 0, ATCA_OTP_SIZE_8);                  // use 8 zeros for "(6)"
 		param->p_temp += ATCA_OTP_SIZE_8;
 
-		memset(param->p_temp, 0, ATCA_OTP_SIZE_3);                     // use 3 zeros for (7)
+		memset(param->p_temp, 0, ATCA_OTP_SIZE_3);                     // use 3 zeros for "(7)"
 		param->p_temp += ATCA_OTP_SIZE_3;
 	}
 
@@ -69,9 +115,9 @@ uint8_t *atcah_include_data(struct atca_include_data_in_out *param)
 
 	// (9) 4 bytes SN[4:7] or zeros
 	if (param->mode & MAC_MODE_INCLUDE_SN)
-		memcpy(param->p_temp, &param->sn[4], ATCA_SN_SIZE_4);           //use SN[4:7] for (9)
+		memcpy(param->p_temp, &param->sn[ATCA_SN_SIZE_4], ATCA_SN_SIZE_4);           //use SN[4:7] for "(9)"
 	else
-		memset(param->p_temp, 0, ATCA_SN_SIZE_4);                       //use zeros for (9)
+		memset(param->p_temp, 0, ATCA_SN_SIZE_4);                       //use zeros for "(9)"
 	param->p_temp += ATCA_SN_SIZE_4;
 
 	// (10) 2 bytes SN[0:1] = 0x0123
@@ -80,9 +126,9 @@ uint8_t *atcah_include_data(struct atca_include_data_in_out *param)
 
 	// (11) 2 bytes SN[2:3] or zeros
 	if (param->mode & MAC_MODE_INCLUDE_SN)
-		memcpy(param->p_temp, &param->sn[2], ATCA_SN_SIZE_2);           //use SN[2:3] for (11)
+		memcpy(param->p_temp, &param->sn[ATCA_SN_SIZE_2], ATCA_SN_SIZE_2);           //use SN[2:3] for "(11)"
 	else
-		memset(param->p_temp, 0, ATCA_SN_SIZE_2);                       //use zeros for (9)
+		memset(param->p_temp, 0, ATCA_SN_SIZE_2);                       //use zeros for "(9)"
 	param->p_temp += ATCA_SN_SIZE_2;
 
 	return param->p_temp;
@@ -208,8 +254,8 @@ ATCA_STATUS atcah_mac(struct atca_mac_in_out *param)
 	*p_temp++ = param->mode;
 
 	// (5) 2 bytes keyID
-	*p_temp++ = param->key_id & 0xFF;
-	*p_temp++ = (param->key_id >> 8) & 0xFF;
+	*p_temp++ = LO_BYTE(param->key_id);						
+	*p_temp++ = HI_BYTE(param->key_id);	
 
 	include_data.p_temp = p_temp;
 	atcah_include_data(&include_data);
@@ -284,20 +330,20 @@ ATCA_STATUS atcah_check_mac(struct atca_check_mac_in_out *param)
 
 	// (6) 8 bytes OTP[0:7] or 0x00's
 	if (param->mode & MAC_MODE_INCLUDE_OTP_64)
-		memcpy(p_temp, param->otp, ATCA_OTP_SIZE_8);    // use 8 bytes OTP[0:7] for (6)
+		memcpy(p_temp, param->otp, ATCA_OTP_SIZE_8);    // use 8 bytes OTP[0:7] for "(6)"
 	else
-		memset(p_temp, 0, ATCA_OTP_SIZE_8);             // use 8 zeros for (6)
+		memset(p_temp, 0, ATCA_OTP_SIZE_8);             // use 8 zeros for "(6)"
 	p_temp += ATCA_OTP_SIZE_8;
 
 	// (7) 3 byte OtherData[4:6]
-	memcpy(p_temp, &param->other_data[ATCA_OTHER_DATA_SIZE_4], ATCA_OTHER_DATA_SIZE_3);  // use OtherData[4:6] for (7)
+	memcpy(p_temp, &param->other_data[ATCA_OTHER_DATA_SIZE_4], ATCA_OTHER_DATA_SIZE_3);  // use OtherData[4:6] for "(7)"
 	p_temp += ATCA_OTHER_DATA_SIZE_3;
 
 	// (8) 1 byte SN[8] = 0xEE
 	*p_temp++ = ATCA_SN_8;
 
 	// (9) 4 byte OtherData[7:10]
-	memcpy(p_temp, &param->other_data[ATCA_OTHER_DATA_SIZE_4 + ATCA_OTHER_DATA_SIZE_3], ATCA_OTHER_DATA_SIZE_4);  // use OtherData[7:10] for (9)
+	memcpy(p_temp, &param->other_data[ATCA_OTHER_DATA_SIZE_4 + ATCA_OTHER_DATA_SIZE_3], ATCA_OTHER_DATA_SIZE_4);  // use OtherData[7:10] for "(9)"
 	p_temp += ATCA_OTHER_DATA_SIZE_4;
 
 	// (10) 2 bytes SN[0:1] = 0x0123
@@ -306,8 +352,7 @@ ATCA_STATUS atcah_check_mac(struct atca_check_mac_in_out *param)
 
 	// (11) 2 byte OtherData[11:12]
 	memcpy(p_temp, &param->other_data[ATCA_OTHER_DATA_SIZE_4 + ATCA_OTHER_DATA_SIZE_3 + ATCA_OTHER_DATA_SIZE_2],
-	       ATCA_OTHER_DATA_SIZE_2);  // use OtherData[11:12] for (11)
-	p_temp += ATCA_OTHER_DATA_SIZE_2;
+	       ATCA_OTHER_DATA_SIZE_2);  // use OtherData[11:12] for "(11)"
 
 	// Calculate SHA256 to get the MAC digest
 	atcah_sha256(ATCA_MSG_SIZE_MAC, temporary, param->client_resp);
@@ -370,11 +415,11 @@ ATCA_STATUS atcah_hmac(struct atca_hmac_in_out *param)
 	// So the Key must be padded with zeros.
 	// XOR K0 with ipad, then append
 	for (i = 0; i < ATCA_KEY_SIZE; i++)
-		*p_temp++ = param->key[i] ^ 0x36;
+		*p_temp++ = param->key[i] ^ HMAC_K0_IPAD;
 
 	// XOR the remaining zeros and append
 	for (i = 0; i < HMAC_BLOCK_SIZE - ATCA_KEY_SIZE; i++)
-		*p_temp++ = 0 ^ 0x36;
+		*p_temp++ = 0 ^ HMAC_K0_IPAD;
 
 	// Next append the stream of data 'text'
 	// (1) first 32 bytes: zeros
@@ -392,8 +437,9 @@ ATCA_STATUS atcah_hmac(struct atca_hmac_in_out *param)
 	*p_temp++ = param->mode;
 
 	// (5) 2 bytes keyID
-	*p_temp++ = param->key_id & 0xFF;
-	*p_temp++ = (param->key_id >> 8) & 0xFF;
+	*p_temp++ = LO_BYTE(param->key_id);			
+	*p_temp++ = HI_BYTE(param->key_id);	
+
 
 	// Calculate SHA256
 	// H((K0^ipad):text), use param.response for temporary storage
@@ -404,11 +450,11 @@ ATCA_STATUS atcah_hmac(struct atca_hmac_in_out *param)
 
 	// XOR K0 with opad, then append
 	for (i = 0; i < ATCA_KEY_SIZE; i++)
-		*p_temp++ = param->key[i] ^ 0x5C;
+		*p_temp++ = param->key[i] ^ HMAC_K0_OPAD;
 
 	// XOR the remaining zeros and append
 	for (i = 0; i < HMAC_BLOCK_SIZE - ATCA_KEY_SIZE; i++)
-		*p_temp++ = 0 ^ 0x5C;
+		*p_temp++ = 0 ^ HMAC_K0_OPAD;
 
 	// Append result from last calculation H((K0 ^ ipad): text)
 	memcpy(p_temp, param->response, ATCA_KEY_SIZE);
@@ -477,8 +523,9 @@ ATCA_STATUS atcah_gen_dig(struct atca_gen_dig_in_out *param)
 	*p_temp++ = param->zone;
 
 	// (4) 2 bytes Param2 (keyID)
-	*p_temp++ = param->key_id & 0xFF;
-	*p_temp++ = (param->key_id >> 8) & 0xFF;
+	*p_temp++ = LO_BYTE(param->key_id);				
+	*p_temp++ = HI_BYTE(param->key_id);	
+
 
 	// (5) 1 byte SN[8] = 0xEE
 	*p_temp++ = ATCA_SN_8;
@@ -500,9 +547,9 @@ ATCA_STATUS atcah_gen_dig(struct atca_gen_dig_in_out *param)
 	// Update TempKey fields
 	param->temp_key->valid = 1;
 
-	if ((param->zone == GENDIG_ZONE_DATA) && (param->key_id <= 15)) {
+	if ((param->zone == GENDIG_ZONE_DATA) && (param->key_id <= ATCA_KEY_ID_MAX)) {
 		param->temp_key->gen_data = 1;
-		param->temp_key->key_id = (param->key_id & 0xF);    // mask lower 4-bit only
+		param->temp_key->key_id = LO_NIBBLE(param->key_id);    // mask lower 4-bit only
 	}else {
 		param->temp_key->gen_data = 0;
 		param->temp_key->key_id = 0;
@@ -548,8 +595,8 @@ ATCA_STATUS atcah_gen_mac(struct atca_gen_dig_in_out *param)
 	*p_temp++ = param->zone;
 
 	// (4) 2 bytes Param2 (keyID)
-	*p_temp++ = param->key_id & 0xFF;
-	*p_temp++ = (param->key_id >> 8) & 0xFF;
+	*p_temp++ = LO_BYTE(param->key_id);		
+	*p_temp++ = HI_BYTE(param->key_id);	
 
 	// (5) 1 byte SN[8] = 0xEE
 	*p_temp++ = ATCA_SN_8;
@@ -571,10 +618,11 @@ ATCA_STATUS atcah_gen_mac(struct atca_gen_dig_in_out *param)
 	// Update TempKey fields
 	param->temp_key->valid = 1;
 
-	if ((param->zone == GENDIG_ZONE_DATA) && (param->key_id <= 15)) {
+	if ((param->zone == GENDIG_ZONE_DATA) && (param->key_id <= ATCA_KEY_ID_MAX)) {
 		param->temp_key->gen_data = 1;
-		param->temp_key->key_id = (param->key_id & 0xF);    // mask lower 4-bit only
-	}else {
+		param->temp_key->key_id = LO_NIBBLE(param->key_id);    // mask lower 4-bit only
+	}
+	else {
 		param->temp_key->gen_data = 0;
 		param->temp_key->key_id = 0;
 	}
@@ -594,7 +642,7 @@ ATCA_STATUS atcah_write_auth_mac(struct atca_write_mac_in_out *param)
 	uint8_t temporary[ATCA_MSG_SIZE_PRIVWRITE_MAC];
 	uint8_t i;
 	uint8_t *p_temp;
-	uint8_t session_key2[32];
+	uint8_t session_key2[ATCA_KEY_SIZE];
 
 	// Check parameters
 	if (!param->input_data || !param->temp_key)
@@ -609,11 +657,11 @@ ATCA_STATUS atcah_write_auth_mac(struct atca_write_mac_in_out *param)
 		return ATCA_EXECUTION_ERROR;
 	}
 	// Encrypt by XOR-ing Data with the TempKey
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < ATCA_KEY_SIZE; i++)
 		param->encrypted_data[i] = param->encryption_key[i] ^ param->temp_key->value[i];
 
 	// Calculate the new tempkey
-	atcah_sha256(32, param->temp_key->value, session_key2);
+	atcah_sha256(ATCA_KEY_SIZE, param->temp_key->value, session_key2);
 
 	// If the pointer *mac is provided by the caller then calculate input MAC
 	if (param->auth_mac) {
@@ -669,7 +717,7 @@ ATCA_STATUS atcah_privwrite_auth_mac(struct atca_write_mac_in_out *param)
 	uint8_t temporary[ATCA_MSG_SIZE_PRIVWRITE_MAC];
 	uint8_t i;
 	uint8_t *p_temp;
-	uint8_t session_key2[32];
+	uint8_t session_key2[ATCA_KEY_SIZE];
 
 	// Check parameters
 	if (!param->input_data || !param->temp_key)
@@ -693,15 +741,15 @@ ATCA_STATUS atcah_privwrite_auth_mac(struct atca_write_mac_in_out *param)
 		param->encrypted_data[i] = 0 ^ param->temp_key->value[i];
 
 	// Encrypt the next 28 bytes of the cipher text, which is the first part of the private key.
-	for (i = 4; i < 32; i++)
+	for (i = 4; i < ATCA_KEY_SIZE; i++)
 		param->encrypted_data[i] = param->encryption_key[i - 4] ^ param->temp_key->value[i];
 
 	// Calculate the new key for the last 4 bytes of the cipher text
-	atcah_sha256(32, param->temp_key->value, session_key2);
+	atcah_sha256(ATCA_KEY_SIZE, param->temp_key->value, session_key2);
 
 	// Encrypt the last 4 bytes of the cipher text, which is the remaining part of the private key
-	for (i = 32; i < 36; i++)
-		param->encrypted_data[i] = param->encryption_key[i - 4] ^ session_key2[i - 32];
+	for (i = ATCA_KEY_SIZE; i < 36; i++)
+		param->encrypted_data[i] = param->encryption_key[i - 4] ^ session_key2[i - ATCA_KEY_SIZE];
 
 	// If the pointer *mac is provided by the caller then calculate input MAC
 	if (param->auth_mac) {
@@ -813,7 +861,6 @@ ATCA_STATUS atcah_derive_key(struct atca_derive_key_in_out *param)
 
 	// (8) 32 bytes TempKey
 	memcpy(p_temp, param->temp_key->value, ATCA_KEY_SIZE);
-	p_temp += ATCA_KEY_SIZE;
 
 	// Calculate SHA256 to get the derived key.
 	atcah_sha256(ATCA_MSG_SIZE_DERIVE_KEY, temporary, param->target_key);

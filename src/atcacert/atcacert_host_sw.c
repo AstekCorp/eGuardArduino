@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief host side methods using software implementations
  *
  * Copyright (c) 2015 Atmel Corporation. All rights reserved.
@@ -44,12 +90,12 @@
 #include "crypto/atca_crypto_sw_ecdsa.h"
 #include "crypto/atca_crypto_sw_rand.h"
 
-int atcacert_verify_cert_sw( const atcacert_def_t* cert_def,
-                             const uint8_t*        cert,
+ATCA_STATUS atcacert_verify_cert_sw( const atcacert_def_t* cert_def,
+                             const uint8_t* cert,
                              size_t cert_size,
                              const uint8_t ca_public_key[64])
 {
-	int ret = 0;
+	ATCA_STATUS ret = 0;
 	uint8_t tbs_digest[32];
 	uint8_t signature[64];
 
@@ -57,21 +103,21 @@ int atcacert_verify_cert_sw( const atcacert_def_t* cert_def,
 		return ATCACERT_E_BAD_PARAMS;
 
 	ret = atcacert_get_tbs_digest(cert_def, cert, cert_size, tbs_digest);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	ret = atcacert_get_signature(cert_def, cert, cert_size, signature);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	ret = atcac_sw_ecdsa_verify_p256(tbs_digest, signature, ca_public_key);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
-
-	return ATCACERT_E_SUCCESS;
+		
+	return ATCA_SUCCESS;
 }
 
-int atcacert_gen_challenge_sw( uint8_t challenge[32] )
+uint16_t atcacert_gen_challenge_sw( uint8_t challenge[32] )
 {
 	if (challenge == NULL)
 		return ATCACERT_E_BAD_PARAMS;
@@ -79,7 +125,7 @@ int atcacert_gen_challenge_sw( uint8_t challenge[32] )
 	return atcac_sw_random(challenge, 32);
 }
 
-int atcacert_verify_response_sw( const uint8_t device_public_key[64],
+ATCA_STATUS atcacert_verify_response_sw( const uint8_t device_public_key[64],
                                  const uint8_t challenge[32],
                                  const uint8_t response[64])
 {

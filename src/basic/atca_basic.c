@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief CryptoAuthLib Basic API methods.  These methods provide a simpler way to access the core crypto
  * methods.  Their design center is around the most common modes and functions of each command
  * rather than the complete implementation of each possible feature of the chip.  If you need a feature
@@ -61,7 +107,7 @@ char atca_version[] = { "20160108" };  // change for each release, yyyymmdd
 
 ATCA_STATUS atcab_version( char *verstr )
 {
-	strcpy( verstr, atca_version );
+	strncpy(verstr, atca_version, sizeof(atca_version));
 	return ATCA_SUCCESS;
 }
 
@@ -88,13 +134,13 @@ ATCA_STATUS atcab_init( ATCAIfaceCfg *cfg )
 
 	_gDevice = newATCADevice( cfg );
 	if ( _gDevice == NULL )
-		return ATCA_GEN_FAIL; // Device creation failed
+		return ATCA_NO_DEVICES; // Device creation failed
 
 	_gCommandObj = atGetCommands( _gDevice );
 	_gIface = atGetIFace( _gDevice );
 
 	if ( _gCommandObj == NULL || _gIface == NULL )
-		return ATCA_GEN_FAIL; // More of an assert to make everything was constructed properly
+		return ATCA_ASSERT_FAILURE; // More of an assert to make everything was constructed properly
 
 	return ATCA_SUCCESS;
 }
@@ -191,19 +237,19 @@ ATCA_STATUS atcab_sleep(void)
 
 #define MAX_BUSES   4
 
-ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], int maxIfaces)
+ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], uint16_t max)
 {
-	int ifaceNum = 0, i;
-	int found = 0;
+	int16_t ifaceNum = 0, i;
+	uint16_t found = 0;
 
-	// this cumulatively gathers all the interfaces enabled by #defines
+	// this cumulatively gathers all the interfaces enabled by pound defines
 
 #ifdef ATCA_HAL_I2C
-	int i2c_buses[MAX_BUSES];
+	uint16_t i2c_buses[MAX_BUSES];
 	memset( i2c_buses, -1, sizeof(i2c_buses));
 	hal_i2c_discover_buses(i2c_buses, MAX_BUSES);
 
-	for ( i = 0; i < MAX_BUSES && ifaceNum < maxIfaces; i++ ) {
+	for ( i = 0; i < MAX_BUSES && ifaceNum < max; i++ ) {
 		if ( i2c_buses[i] != -1 ) {
 			hal_i2c_discover_devices( i2c_buses[i], &cfgArray[ifaceNum], &found );
 			ifaceNum += found;
@@ -212,10 +258,10 @@ ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], int maxIfaces)
 #endif
 
 #ifdef ATCA_HAL_SWI
-	int swi_buses[MAX_BUSES];
+	uint16_t swi_buses[MAX_BUSES];
 	memset( swi_buses, -1, sizeof(swi_buses));
 	hal_swi_discover_buses(swi_buses, MAX_BUSES);
-	for ( i = 0; i < MAX_BUSES && ifaceNum < maxIfaces; i++ ) {
+	for ( i = 0; i < MAX_BUSES && ifaceNum < max; i++ ) {
 		if ( swi_buses[i] != -1 ) {
 			hal_swi_discover_devices( swi_buses[i], &cfgArray[ifaceNum], &found);
 			ifaceNum += found;
@@ -225,10 +271,10 @@ ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], int maxIfaces)
 #endif
 
 #ifdef ATCA_HAL_UART
-	int uart_buses[MAX_BUSES];
+	uint16_t uart_buses[MAX_BUSES];
 	memset( uart_buses, -1, sizeof(uart_buses));
 	hal_uart_discover_buses(uart_buses, MAX_BUSES);
-	for ( i = 0; i < MAX_BUSES && ifaceNum < maxIfaces; i++ ) {
+	for ( i = 0; i < MAX_BUSES && ifaceNum < max; i++ ) {
 		if ( uart_buses[i] != -1 ) {
 			hal_uart_discover_devices( uart_buses[i], &cfgArray[ifaceNum], &found);
 			ifaceNum += found;
@@ -237,10 +283,10 @@ ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], int maxIfaces)
 #endif
 
 #ifdef ATCA_HAL_KIT_CDC
-	int cdc_buses[MAX_BUSES];
+	uint16_t cdc_buses[MAX_BUSES];
 	memset( cdc_buses, -1, sizeof(cdc_buses));
 	hal_kit_cdc_discover_buses(cdc_buses, MAX_BUSES);
-	for ( i = 0; i < MAX_BUSES && ifaceNum < maxIfaces; i++ ) {
+	for ( i = 0; i < MAX_BUSES && ifaceNum < max; i++ ) {
 		if ( cdc_buses[i] != -1 ) {
 			hal_kit_cdc_discover_devices( cdc_buses[i], &cfgArray[ifaceNum++], &found );
 			ifaceNum += found;
@@ -249,10 +295,10 @@ ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], int maxIfaces)
 #endif
 
 #ifdef ATCA_HAL_KIT_HID
-	int hid_buses[MAX_BUSES];
+	uint16_t hid_buses[MAX_BUSES];
 	memset( hid_buses, -1, sizeof(hid_buses));
 	hal_kit_hid_discover_buses(hid_buses, MAX_BUSES);
-	for ( i = 0; i < MAX_BUSES && ifaceNum < maxIfaces; i++ ) {
+	for ( i = 0; i < MAX_BUSES && ifaceNum < max; i++ ) {
 		if ( hid_buses[i] != -1 ) {
 			hal_kit_hid_discover_devices( hid_buses[i], &cfgArray[ifaceNum++], &found);
 			ifaceNum += found;
@@ -291,7 +337,7 @@ ATCA_STATUS atcab_info( uint8_t *revision )
 	packet.param2 = 0;
 
 	do {
-		if ( (status = atInfo( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atInfo( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_INFO);
@@ -344,10 +390,20 @@ ATCA_STATUS atcab_random(uint8_t *rand_out)
 	if ( !_gDevice )
 		return ATCA_GEN_FAIL;
 
+	//check if parameter is valid
+	if (rand_out == NULL)
+	{
+		return ATCA_BAD_PARAM;
+	}
+
 	// build an random command
 	packet.param1 = RANDOM_SEED_UPDATE;
 	packet.param2 = 0x0000;
-	status = atRandom( _gCommandObj, &packet );
+	status = atRandom( &packet);
+	if (status != ATCA_SUCCESS) 
+	{ 
+		return status; 
+	}
 	execution_time = atGetExecTime( _gCommandObj, CMD_RANDOM);
 
 	do {
@@ -389,7 +445,7 @@ ATCA_STATUS atcab_random(uint8_t *rand_out)
  *   \param[out] pubkey  64 bytes of returned public key for given slot
  *   \return ATCA_STATUS
  */
-ATCA_STATUS atcab_genkey( int slot, uint8_t *pubkey )
+ATCA_STATUS atcab_genkey( uint8_t slot, uint8_t *pubkey )
 {
 	ATCAPacket packet;
 	uint16_t execution_time = 0;
@@ -400,7 +456,7 @@ ATCA_STATUS atcab_genkey( int slot, uint8_t *pubkey )
 	packet.param2 = (uint16_t)slot;                     // slot and KeyID are the same thing
 
 	do {
-		if ( (status = atGenKey( _gCommandObj, &packet, false )) != ATCA_SUCCESS )
+		if ( (status = atGenKey( &packet, false)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_GENKEY);
@@ -479,7 +535,7 @@ ATCA_STATUS atcab_challenge(const uint8_t *challenge)
 		packet.param2 = 0x0000;
 		memcpy( packet.crypto_data, challenge, 32 );
 
-		if ((status = atNonce( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ((status = atNonce( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_NONCE);
@@ -539,7 +595,7 @@ ATCA_STATUS atcab_challenge_seed_update( const uint8_t *seed, uint8_t* rand_out 
 		packet.param2 = 0x0000;
 		memcpy( packet.crypto_data, seed, 20 );
 
-		if ((status = atNonce(_gCommandObj, &packet)) != ATCA_SUCCESS) break;
+		if ((status = atNonce(&packet)) != ATCA_SUCCESS) break;
 
 		execution_time = atGetExecTime(_gCommandObj, CMD_NONCE);
 
@@ -586,6 +642,12 @@ ATCA_STATUS atcab_read_serial_number(uint8_t* serial_number)
 	uint8_t cpyIndex = 0;
 	uint8_t offset = 0;
 
+	//check if parameter is valid
+	if (serial_number == NULL)
+	{
+		return ATCA_BAD_PARAM;
+	}
+
 	do {
 		memset(serial_number, 0x00, ATCA_SERIAL_NUM_SIZE);
 		// Read first 32 byte block.  Copy the bytes into the config_data buffer
@@ -625,6 +687,7 @@ ATCA_STATUS atcab_read_serial_number(uint8_t* serial_number)
  *  \param[out] verified   boolean whether or not the challenge/signature/pubkey verified
  *  \return ATCA_STATUS
  */
+
 ATCA_STATUS atcab_verify_extern(const uint8_t *message, const uint8_t *signature, const uint8_t *pubkey, bool *verified)
 {
 	ATCA_STATUS status;
@@ -644,7 +707,7 @@ ATCA_STATUS atcab_verify_extern(const uint8_t *message, const uint8_t *signature
 		memcpy( &packet.crypto_data[0], signature, ATCA_SIG_SIZE);
 		memcpy( &packet.crypto_data[64], pubkey, ATCA_PUB_KEY_SIZE);
 
-		if ( (status = atVerify( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atVerify( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_VERIFY );
@@ -706,7 +769,7 @@ ATCA_STATUS atcab_ecdh(uint16_t key_id, const uint8_t* pubkey, uint8_t* ret_ecdh
 		packet.param2 = key_id;
 		memcpy( packet.crypto_data, pubkey, ATCA_PUB_KEY_SIZE );
 
-		if ( (status = atECDH( _gCommandObj, &packet )) != ATCA_SUCCESS ) break;
+		if ( (status = atECDH( &packet)) != ATCA_SUCCESS ) break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_ECDH);
 
@@ -935,7 +998,7 @@ ATCA_STATUS atcab_write_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t 
 		packet.param2 = addr;
 		memcpy( packet.crypto_data, data, len );
 
-		if ( (status = atWrite( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atWrite( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_WRITEMEM);
@@ -1013,7 +1076,7 @@ ATCA_STATUS atcab_read_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t o
 		packet.param1 = zone;
 		packet.param2 = addr;
 
-		if ( (status = atRead( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atRead( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_READMEM);
@@ -1069,7 +1132,7 @@ ATCA_STATUS atcab_read_enc(uint8_t slotid, uint8_t block, uint8_t *data, const u
 	atca_temp_key_t tempkey;
 	uint8_t numin[NONCE_NUMIN_SIZE] = { 0 };
 	uint8_t randout[RANDOM_NUM_SIZE] = { 0 };
-	int i = 0;
+	uint16_t i = 0;
 
 	do {
 		// Verify inputs parameters
@@ -1193,7 +1256,7 @@ ATCA_STATUS atcab_write_enc(uint8_t slotid, uint8_t block, const uint8_t *data, 
 		memcpy(packet.crypto_data, cipher_text, ATCA_KEY_SIZE);
 		memcpy(&packet.crypto_data[ATCA_KEY_SIZE], tempkey.value, ATCA_KEY_SIZE);
 
-		if ((status = atWriteEnc(_gCommandObj, &packet)) != ATCA_SUCCESS) BREAK(status, "format write command bytes failed");
+		if ((status = atWriteEnc(&packet)) != ATCA_SUCCESS) BREAK(status, "format write command bytes failed");
 
 		execution_time = atGetExecTime(_gCommandObj, CMD_WRITEMEM);
 
@@ -1252,7 +1315,10 @@ ATCA_STATUS atcab_read_ecc_config_zone(uint8_t* config_data)
 				break;
 
 			packet.param2 =  addr;
-			status = atRead(_gCommandObj, &packet);
+			status = atRead(&packet);if (status != ATCA_SUCCESS) 
+			{ 
+				return status; 
+			}
 			execution_time = atGetExecTime( _gCommandObj, CMD_READMEM);
 
 			if ( (status = atcab_wakeup()) != ATCA_SUCCESS )
@@ -1302,11 +1368,20 @@ ATCA_STATUS atcab_read_ecc_config_zone(uint8_t* config_data)
 			packet.param1 = ATCA_ZONE_CONFIG | ATCA_ZONE_READWRITE_32;
 
 			// compute the word addr and build the read command
-			if ( (status = atcab_get_addr(zone, slot, block, offset, &addr)) != ATCA_SUCCESS )
+			status = atcab_get_addr(zone, slot, block, offset, &addr);
+			if ( status != ATCA_SUCCESS )
+			{
 				break;
+			}
 
 			packet.param2 =  addr;
-			status = atRead(_gCommandObj, &packet);
+			
+			status = atRead(&packet);
+			if (status != ATCA_SUCCESS) 
+			{ 
+				return status; 
+			}
+			
 			execution_time = atGetExecTime( _gCommandObj, CMD_READMEM);
 
 			if ( (status = atcab_wakeup()) != ATCA_SUCCESS ) break;
@@ -1376,13 +1451,20 @@ ATCA_STATUS atcab_write_ecc_config_zone(const uint8_t* config_data)
 				// read 4 bytes at once
 				packet.param1 = ATCA_ZONE_CONFIG;
 				// build a write command (write from the start)
-				if ( (status = atcab_get_addr(zone, slot, block, offset, &addr)) != ATCA_SUCCESS )
+				status = atcab_get_addr(zone, slot, block, offset, &addr);
+				if ( status != ATCA_SUCCESS )
 					break;
 
 				packet.param2 =  addr;
 				memcpy(&packet.crypto_data[0], &config_data[index + 16], ATCA_WORD_SIZE);
 				index += ATCA_WORD_SIZE;
-				status = atWrite(_gCommandObj, &packet);
+				
+				status = atWrite(&packet);
+				if (status != ATCA_SUCCESS) 
+				{ 
+					return status; 
+				}
+				
 				execution_time = atGetExecTime( _gCommandObj, CMD_WRITEMEM);
 
 				if ( (status = atcab_wakeup()) != ATCA_SUCCESS ) break;
@@ -1431,7 +1513,7 @@ ATCA_STATUS atcab_write_ecc_config_zone(const uint8_t* config_data)
 			packet.param2 =  addr;
 			memcpy(&packet.crypto_data[0], &config_data[index + 16], ATCA_BLOCK_SIZE);
 			index += ATCA_BLOCK_SIZE;
-			if ( (status = atWrite(_gCommandObj, &packet)) != ATCA_SUCCESS )
+			if ( (status = atWrite(&packet)) != ATCA_SUCCESS )
 				break;
 
 			execution_time = atGetExecTime( _gCommandObj, CMD_WRITEMEM);
@@ -1632,7 +1714,7 @@ ATCA_STATUS atcab_lock_config_zone(uint8_t* lock_response)
 	packet.param1 = LOCK_ZONE_NO_CRC | LOCK_ZONE_CONFIG;
 
 	do {
-		if ( (status = atLock(_gCommandObj, &packet)) != ATCA_SUCCESS ) break;
+		if ( (status = atLock(&packet)) != ATCA_SUCCESS ) break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_LOCK);
 
@@ -1687,7 +1769,12 @@ ATCA_STATUS atcab_lock_data_zone(uint8_t* lock_response)
 	packet.param2 = 0x0000;
 
 	do {
-		status = atLock(_gCommandObj, &packet);
+		status = atLock(&packet);
+		if (status != ATCA_SUCCESS) 
+		{ 
+			return status; 
+		}
+		
 		execution_time = atGetExecTime( _gCommandObj, CMD_LOCK);
 
 		if ((status = atcab_wakeup()) != ATCA_SUCCESS ) break;
@@ -1741,7 +1828,7 @@ ATCA_STATUS atcab_lock_data_slot(uint8_t slot, uint8_t* lock_response)
 	packet.param2 = 0x0000;
 
 	do {
-		if ( (status = atLock(_gCommandObj, &packet)) != ATCA_SUCCESS ) break;
+		if ( (status = atLock(&packet)) != ATCA_SUCCESS ) break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_LOCK);
 
@@ -1801,7 +1888,7 @@ ATCA_STATUS atcab_sign(uint16_t slot, const uint8_t *msg, uint8_t *signature)
 		// build sign command
 		packet.param1 = SIGN_MODE_EXTERNAL;
 		packet.param2 = slot;
-		if ( (status = atSign( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atSign( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_SIGN);
@@ -1892,7 +1979,7 @@ ATCA_STATUS atcab_gendig_host(uint8_t zone, uint16_t key_id, uint8_t *other_data
 			hasMACKey = true;
 		}
 
-		if ( (status = atGenDig( _gCommandObj, &packet, hasMACKey)) != ATCA_SUCCESS )
+		if ( (status = atGenDig( &packet, hasMACKey)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_GENDIG);
@@ -1965,7 +2052,6 @@ ATCA_STATUS atcab_read_sig(uint8_t slot8toF, uint8_t *sig)
 
 		// Copy.  next 32 bytes
 		memcpy(&sig[cpyIndex], &read_buf[0], ATCA_BLOCK_SIZE);
-		cpyIndex += ATCA_BLOCK_SIZE;
 
 	} while (0);
 
@@ -1984,7 +2070,7 @@ ATCA_STATUS atcab_calc_pubkey(uint8_t privSlotId, uint8_t *pubkey)
 }
 
 /** \brief returns a public key found in a designated slot.  The slot must be configured as a slot with a private key.
- *  This method will use GenKey t geenrate the corresponding public key from the private key in the given slot.
+ *  This method will use GenKey t generate the corresponding public key from the private key in the given slot.
  *  \param[in] privSlotId ID of the private key slot
  *  \param[out] pubkey - pointer to space receiving the contents of the public key that was generated
  *  \return ATCA_STATUS
@@ -1995,12 +2081,18 @@ ATCA_STATUS atcab_get_pubkey(uint8_t privSlotId, uint8_t *pubkey)
 	uint16_t execution_time = 0;
 	ATCA_STATUS status = ATCA_GEN_FAIL;
 
+	//check if parameters are valid
+	if (privSlotId > 15 || pubkey == NULL)
+	{
+		return ATCA_BAD_PARAM;
+	}	
+
 	do {
 		// build a genkey command
 		packet.param1 = GENKEY_MODE_PUBLIC;
 		packet.param2 = (uint16_t)(privSlotId);
 
-		if ( (status = atGenKey( _gCommandObj, &packet, false )) != ATCA_SUCCESS ) break;
+		if ( (status = atGenKey( &packet, false)) != ATCA_SUCCESS ) break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_GENKEY);
 
@@ -2057,8 +2149,8 @@ ATCA_STATUS atcab_priv_write(uint8_t slot, const uint8_t priv_key[36], uint8_t w
 	uint8_t cipher_text[36] = { 0 };
 	uint8_t host_mac[MAC_SIZE] = { 0 };
 	uint16_t execution_time = 0;
-	uint8_t privKey[36];
-	uint8_t writeKey[32];
+	uint8_t privKey[ATCA_KEY_SLOT_SIZE];
+	uint8_t writeKey[ATCA_KEY_SIZE];
 
 	if (slot > 15 || priv_key == NULL)
 		return ATCA_BAD_PARAM;
@@ -2070,12 +2162,12 @@ ATCA_STATUS atcab_priv_write(uint8_t slot, const uint8_t priv_key[36], uint8_t w
 			// build an PrivWrite command
 			packet.param1 = 0x00;                   // Mode is unencrypted write
 			packet.param2 = slot;                   // Key ID
-			memcpy(&packet.crypto_data[0], priv_key, 36);  // Private key
-			memset(&packet.crypto_data[36], 0, 32);        // MAC (ignored for unencrypted write)
+			memcpy(&packet.crypto_data[0], priv_key, ATCA_KEY_SLOT_SIZE);  // Private key
+			memset(&packet.crypto_data[36], 0, ATCA_KEY_SIZE);        // MAC (ignored for unencrypted write)
 		}else {
 			// Copy the buffers to honor the const designation
-			memcpy(privKey, priv_key, 36);
-			memcpy(writeKey, write_key, 32);
+			memcpy(privKey, priv_key, ATCA_KEY_SLOT_SIZE);
+			memcpy(writeKey, write_key, ATCA_KEY_SIZE);
 
 			// Send the random Nonce command
 			if ((status = atcab_nonce_rand(numin, randout)) != ATCA_SUCCESS)
@@ -2119,7 +2211,7 @@ ATCA_STATUS atcab_priv_write(uint8_t slot, const uint8_t priv_key[36], uint8_t w
 			memcpy(&packet.crypto_data[36], host_mac, sizeof(host_mac));
 		}
 
-		if ((status = atPrivWrite(_gCommandObj, &packet)) != ATCA_SUCCESS)
+		if ((status = atPrivWrite(&packet)) != ATCA_SUCCESS)
 			break;
 
 		execution_time = atGetExecTime(_gCommandObj, CMD_PRIVWRITE);
@@ -2302,7 +2394,7 @@ ATCA_STATUS atcab_read_pubkey(uint8_t slot8toF, uint8_t *pubkey)
  *  \param[in] slot to write data
  *  \param[in] offset of pointed slot
  *  \param[in] data pointer to write data
- *  \param[in] data length corresponding to data
+ *  \param[in] data length corresponding to data, must be 4 or 32
  *  \return ATCA_STATUS
  */
 ATCA_STATUS atcab_write_bytes_slot(uint8_t slot, uint16_t offset, const uint8_t *data, uint8_t len)
@@ -2311,29 +2403,13 @@ ATCA_STATUS atcab_write_bytes_slot(uint8_t slot, uint16_t offset, const uint8_t 
 
 	uint16_t currAddress = offset;
 	uint8_t currBlock = currAddress / ATCA_BLOCK_SIZE;
-	uint8_t prevBlock = currBlock;
 	uint8_t currOffset = (currAddress - (currBlock * ATCA_BLOCK_SIZE)) / ATCA_WORD_SIZE;
 	uint16_t writeIdx = 0;
 
 	if (data == NULL || slot > 15)
 		return ATCA_BAD_PARAM;
-
-	do {
-		status = atcab_write_zone(ATCA_ZONE_DATA, slot, currBlock, currOffset, &data[writeIdx], ATCA_BLOCK_SIZE);
-		if (status != ATCA_SUCCESS) break;
-
-		currAddress += ATCA_BLOCK_SIZE;
-		currBlock = currAddress / ATCA_BLOCK_SIZE;
-
-		if ( prevBlock == currBlock)
-			currOffset++;
-		else {
-			currOffset = 0;
-			prevBlock = currBlock;
-		}
-
-		writeIdx += ATCA_BLOCK_SIZE;
-	} while (0);
+	
+	status = atcab_write_zone(ATCA_ZONE_DATA, slot, currBlock, currOffset, &data[writeIdx], len);
 
 	return status;
 }
@@ -2591,7 +2667,7 @@ ATCA_STATUS atcab_mac( uint8_t mode, uint16_t key_id, const uint8_t* challenge, 
 		packet.param2 = key_id;
 		memcpy( &packet.crypto_data[0], challenge, 32 );  // a 32-byte challenge
 
-		if ( (status = atMAC( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atMAC( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_MAC);
@@ -2659,7 +2735,7 @@ ATCA_STATUS atcab_checkmac( uint8_t mode, uint16_t key_id, const uint8_t *challe
 		memcpy( &packet.crypto_data[32], response, CHECKMAC_CLIENT_RESPONSE_SIZE );
 		memcpy( &packet.crypto_data[64], other_data, CHECKMAC_OTHER_DATA_SIZE );
 
-		if ( (status = atCheckMAC( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atCheckMAC(&packet )) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_CHECKMAC);
@@ -2711,7 +2787,7 @@ ATCA_STATUS atcab_sha_start(void)
 		packet.param1 = SHA_SHA256_START_MASK;
 		packet.param2 = 0;
 
-		if ( (status = atSHA( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atSHA( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_SHA);
@@ -2773,7 +2849,7 @@ ATCA_STATUS atcab_sha_update(uint16_t length, const uint8_t *message)
 		packet.param2 = length;
 		memcpy(&packet.crypto_data[0], message, length);
 
-		if ( (status = atSHA( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atSHA( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_SHA);
@@ -2840,7 +2916,7 @@ ATCA_STATUS atcab_sha_end(uint8_t *digest, uint16_t length, const uint8_t *messa
 		if ( length > 0 )
 			memcpy(&packet.crypto_data[0], message, length);
 
-		if ( (status = atSHA( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atSHA( &packet)) != ATCA_SUCCESS )
 			break;
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_SHA);
@@ -2888,7 +2964,7 @@ ATCA_STATUS atcab_sha_end(uint8_t *digest, uint16_t length, const uint8_t *messa
 ATCA_STATUS atcab_sha(uint16_t length, const uint8_t *message, uint8_t *digest)
 {
 	ATCA_STATUS status = ATCA_GEN_FAIL;
-	int blocks = 0, remainder = 0, msgIndex = 0;
+	uint16_t blocks = 0, remainder = 0, msgIndex = 0;
 
 	if ( length == 0 || message == NULL || digest == NULL )
 		return ATCA_BAD_PARAM;

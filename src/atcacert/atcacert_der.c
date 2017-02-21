@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief functions required to work with DER encoded data related to X.509 certificates.
  *
  * Copyright (c) 2015 Atmel Corporation. All rights reserved.
@@ -73,7 +119,7 @@ int atcacert_der_enc_length(uint32_t length, uint8_t* der_length, size_t* der_le
 	*der_length_size = der_length_size_calc;
 
 	if (der_length == NULL)
-		return ATCACERT_E_SUCCESS; // Caller is only requesting the size
+		return ATCA_SUCCESS; // Caller is only requesting the size
 
 	// Encode length in big-endian format
 	for (; exp >= 0; exp--)
@@ -82,7 +128,7 @@ int atcacert_der_enc_length(uint32_t length, uint8_t* der_length, size_t* der_le
 	if (der_length_size_calc > 1)
 		der_length[0] = 0x80 | (uint8_t)(der_length_size_calc - 1); // Set number of bytes octet with long-form flag
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_der_dec_length(const uint8_t* der_length, size_t* der_length_size, uint32_t* length)
@@ -117,7 +163,7 @@ int atcacert_der_dec_length(const uint8_t* der_length, size_t* der_length_size, 
 		*der_length_size = 1; // Return the actual number of bytes the DER length encoding used.
 	}
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_der_enc_integer( const uint8_t* int_data,
@@ -148,7 +194,7 @@ int atcacert_der_enc_integer( const uint8_t* int_data,
 		pad = 1;
 
 	int ret = atcacert_der_enc_length(int_data_size + pad - trim, der_length, &der_length_size);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	der_int_size_calc = 1 + der_length_size + int_data_size + pad - trim;
@@ -161,7 +207,7 @@ int atcacert_der_enc_integer( const uint8_t* int_data,
 	*der_int_size = der_int_size_calc;
 
 	if (der_int == NULL)
-		return ATCACERT_E_SUCCESS;                                                      // Caller just wanted the size of the encoded integer
+		return ATCA_SUCCESS;                                                      // Caller just wanted the size of the encoded integer
 
 	der_int[0] = 0x02;                                                                  // Integer tag
 	memcpy(&der_int[1], der_length, der_length_size);                                   // Integer length
@@ -169,7 +215,7 @@ int atcacert_der_enc_integer( const uint8_t* int_data,
 		der_int[der_length_size + 1] = 0;                                               // Unsigned integer value requires padding byte so it's not interpreted as negative
 	memcpy(&der_int[der_length_size + 1 + pad], &int_data[trim], int_data_size - trim); // Integer value
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_der_dec_integer( const uint8_t* der_int,
@@ -192,7 +238,7 @@ int atcacert_der_dec_integer( const uint8_t* der_int,
 
 	der_length_size = *der_int_size - 1;
 	ret = atcacert_der_dec_length(&der_int[1], &der_length_size, &int_data_size_calc);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	if (*der_int_size < (1 + der_length_size + int_data_size_calc))
@@ -201,7 +247,7 @@ int atcacert_der_dec_integer( const uint8_t* der_int,
 	*der_int_size = (1 + der_length_size + int_data_size_calc);
 
 	if (int_data == NULL && int_data_size == NULL)
-		return ATCACERT_E_SUCCESS; // Caller doesn't want the actual data, just the der_int_size
+		return ATCA_SUCCESS; // Caller doesn't want the actual data, just the der_int_size
 
 	if (int_data != NULL && *int_data_size < int_data_size_calc) {
 		*int_data_size = int_data_size_calc;
@@ -211,11 +257,11 @@ int atcacert_der_dec_integer( const uint8_t* der_int,
 	*int_data_size = int_data_size_calc;
 
 	if (int_data == NULL)
-		return ATCACERT_E_SUCCESS; // Caller doesn't want the actual data, just the int_data_size
+		return ATCA_SUCCESS; // Caller doesn't want the actual data, just the int_data_size
 
 	memcpy(int_data, &der_int[1 + der_length_size], int_data_size_calc);
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_der_enc_ecdsa_sig_value( const uint8_t raw_sig[64],
@@ -232,12 +278,12 @@ int atcacert_der_enc_ecdsa_sig_value( const uint8_t raw_sig[64],
 
 	// Find size of the DER encoded R integer
 	ret = atcacert_der_enc_integer(&raw_sig[0], 32, TRUE, NULL, &r_size);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	// Find size of the DER encoded S integer
 	ret = atcacert_der_enc_integer(&raw_sig[32], 32, TRUE, NULL, &s_size);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	// This calculation assumes all DER lengths are a single byte, which is fine for 32 byte
@@ -252,7 +298,7 @@ int atcacert_der_enc_ecdsa_sig_value( const uint8_t raw_sig[64],
 	*der_sig_size = der_sig_size_calc;
 
 	if (der_sig == NULL)
-		return ATCACERT_E_SUCCESS;                  // Caller just wanted the encoded size
+		return ATCA_SUCCESS;                  // Caller just wanted the encoded size
 
 	der_sig[0] = 0x03;                              // signatureValue bit string tag
 	der_sig[1] = (uint8_t)(der_sig_size_calc - 2);  // signatureValue bit string length
@@ -264,15 +310,15 @@ int atcacert_der_enc_ecdsa_sig_value( const uint8_t raw_sig[64],
 
 	// Add R integer
 	ret = atcacert_der_enc_integer(&raw_sig[0], 32, TRUE, &der_sig[5], &r_size);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
 	// Add S integer
 	ret = atcacert_der_enc_integer(&raw_sig[32], 32, TRUE, &der_sig[5 + r_size], &s_size);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret;
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }
 
 int atcacert_der_dec_ecdsa_sig_value( const uint8_t* der_sig,
@@ -304,7 +350,7 @@ int atcacert_der_dec_ecdsa_sig_value( const uint8_t* der_sig,
 	// signatureValue bit string length
 	dec_size = *der_sig_size - curr_idx;
 	ret = atcacert_der_dec_length(&der_sig[curr_idx], &dec_size, &bs_length);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret; // Failed to decode length
 	curr_idx += dec_size;
 	if (curr_idx + bs_length > *der_sig_size)
@@ -331,7 +377,7 @@ int atcacert_der_dec_ecdsa_sig_value( const uint8_t* der_sig,
 		return ATCACERT_E_DECODING_ERROR; // No data left
 	dec_size = *der_sig_size - curr_idx;
 	ret = atcacert_der_dec_length(&der_sig[curr_idx], &dec_size, &seq_length);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret; // Failed to decode length
 	curr_idx += dec_size;
 	if (curr_idx + seq_length > *der_sig_size)
@@ -343,7 +389,7 @@ int atcacert_der_dec_ecdsa_sig_value( const uint8_t* der_sig,
 	r_size = *der_sig_size - curr_idx;
 	int_data_size = sizeof(int_data);
 	ret = atcacert_der_dec_integer(&der_sig[curr_idx], &r_size, int_data, &int_data_size);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret; // Failed to decode length
 	curr_idx += r_size;
 
@@ -368,7 +414,7 @@ int atcacert_der_dec_ecdsa_sig_value( const uint8_t* der_sig,
 	s_size = *der_sig_size - curr_idx;
 	int_data_size = sizeof(int_data);
 	ret = atcacert_der_dec_integer(&der_sig[curr_idx], &s_size, int_data, &int_data_size);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCA_SUCCESS)
 		return ret; // Failed to decode length
 	curr_idx += s_size;
 
@@ -392,5 +438,5 @@ int atcacert_der_dec_ecdsa_sig_value( const uint8_t* der_sig,
 
 	*der_sig_size = curr_idx;
 
-	return ATCACERT_E_SUCCESS;
+	return ATCA_SUCCESS;
 }

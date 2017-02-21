@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief Declarations common to all atcacert code.
  *
  * These are common definitions used by all the atcacert code.
@@ -61,20 +107,6 @@
 #ifndef TRUE
 #define TRUE (1)
 #endif
-
-#define ATCACERT_E_SUCCESS              0   //!< Operation completed successfully.
-//#define ATCACERT_E_ERROR                1   //!< General error.
-//#define ATCACERT_E_BAD_PARAMS           2   //!< Invalid/bad parameter passed to function.
-//#define ATCACERT_E_BUFFER_TOO_SMALL     3   //!< Supplied buffer for output is too small to hold the result.
-//#define ATCACERT_E_DECODING_ERROR       4   //!< Data being decoded/parsed has an invalid format.
-//#define ATCACERT_E_INVALID_DATE         5   //!< Date is invalid.
-//#define ATCACERT_E_UNIMPLEMENTED        6   //!< Function is unimplemented for the current configuration.
-//#define ATCACERT_E_UNEXPECTED_ELEM_SIZE 7   //!< A certificate element size was not what was expected.
-//#define ATCACERT_E_ELEM_MISSING         8   //!< The certificate element isn't defined for the certificate definition.
-//#define ATCACERT_E_ELEM_OUT_OF_BOUNDS   9   //!< Certificate element is out of bounds for the given certificate.
-//#define ATCACERT_E_BAD_CERT             10  //!< Certificate structure is bad in some way.
-//#define ATCACERT_E_WRONG_CERT_DEF       11
-//#define ATCACERT_E_VERIFY_FAILED        12  //!< Certificate or challenge/response verification failed.
 
 /** @} */
 #endif

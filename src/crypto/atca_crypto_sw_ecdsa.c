@@ -1,3 +1,45 @@
+/**
+ * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License
+ * 
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ * 
+ * \astek_eguard_library_license_stop
+ */
 #include "atca_crypto_sw_ecdsa.h"
 #include <string.h>
 
@@ -6,20 +48,16 @@
 
 typedef unsigned int uint;
 
-#if defined(__SIZEOF_INT128__) || ((__clang_major__ * 100 + __clang_minor__) >= 302)
-    #define SUPPORTS_INT128 1
-#else
-    #define SUPPORTS_INT128 0
-#endif
+#define SUPPORTS_INT128	false
 
 #if SUPPORTS_INT128
-typedef unsigned __int128 uint128_t;
+	typedef unsigned __int128 uint128_t;
 #else
-typedef struct
-{
-    uint64_t m_low;
-    uint64_t m_high;
-} uint128_t;
+	typedef struct
+	{
+		uint64_t m_low;
+		uint64_t m_high;
+	} uint128_t;
 #endif
 
 typedef struct EccPoint
@@ -32,13 +70,13 @@ typedef struct EccPoint
 #define CONCAT(a, b) CONCAT1(a, b)
 
 #define Curve_P_16 {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFDFFFFFFFF}
-#define Curve_P_24 {0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFFFFFFFFFEull, 0xFFFFFFFFFFFFFFFFull}
-#define Curve_P_32 {0xFFFFFFFFFFFFFFFFull, 0x00000000FFFFFFFFull, 0x0000000000000000ull, 0xFFFFFFFF00000001ull}
+#define Curve_P_24 {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF}
+#define Curve_P_32 {0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001}
 #define Curve_P_48 {0x00000000FFFFFFFF, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF}
 
 #define Curve_B_16 {0xD824993C2CEE5ED3, 0xE87579C11079F43D}
-#define Curve_B_24 {0xFEB8DEECC146B9B1ull, 0x0FA7E9AB72243049ull, 0x64210519E59C80E7ull}
-#define Curve_B_32 {0x3BCE3C3E27D2604Bull, 0x651D06B0CC53B0F6ull, 0xB3EBBD55769886BCull, 0x5AC635D8AA3A93E7ull}
+#define Curve_B_24 {0xFEB8DEECC146B9B1, 0x0FA7E9AB72243049, 0x64210519E59C80E7}
+#define Curve_B_32 {0x3BCE3C3E27D2604B, 0x651D06B0CC53B0F6, 0xB3EBBD55769886BC, 0x5AC635D8AA3A93E7}
 #define Curve_B_48 {0x2A85C8EDD3EC2AEF, 0xC656398D8A2ED19D, 0x0314088F5013875A, 0x181D9C6EFE814112, 0x988E056BE3F82D19, 0xB3312FA7E23EE7E4}
 
 #define Curve_G_16 { \
@@ -46,20 +84,20 @@ typedef struct EccPoint
     {0xC02DA292DDED7A83, 0xCF5AC8395BAFEB13}}
 
 #define Curve_G_24 { \
-    {0xF4FF0AFD82FF1012ull, 0x7CBF20EB43A18800ull, 0x188DA80EB03090F6ull}, \
-    {0x73F977A11E794811ull, 0x631011ED6B24CDD5ull, 0x07192B95FFC8DA78ull}}
+    {0xF4FF0AFD82FF1012, 0x7CBF20EB43A18800, 0x188DA80EB03090F6}, \
+    {0x73F977A11E794811, 0x631011ED6B24CDD5, 0x07192B95FFC8DA78}}
     
 #define Curve_G_32 { \
-    {0xF4A13945D898C296ull, 0x77037D812DEB33A0ull, 0xF8BCE6E563A440F2ull, 0x6B17D1F2E12C4247ull}, \
-    {0xCBB6406837BF51F5ull, 0x2BCE33576B315ECEull, 0x8EE7EB4A7C0F9E16ull, 0x4FE342E2FE1A7F9Bull}}
+    {0xF4A13945D898C296, 0x77037D812DEB33A0, 0xF8BCE6E563A440F2, 0x6B17D1F2E12C4247}, \
+    {0xCBB6406837BF51F5, 0x2BCE33576B315ECE, 0x8EE7EB4A7C0F9E16, 0x4FE342E2FE1A7F9B}}
 
 #define Curve_G_48 { \
     {0x3A545E3872760AB7, 0x5502F25DBF55296C, 0x59F741E082542A38, 0x6E1D3B628BA79B98, 0x8EB1C71EF320AD74, 0xAA87CA22BE8B0537}, \
     {0x7A431D7C90EA0E5F, 0x0A60B1CE1D7E819D, 0xE9DA3113B5F0B8C0, 0xF8F41DBD289A147C, 0x5D9E98BF9292DC29, 0x3617DE4A96262C6F}}
 
 #define Curve_N_16 {0x75A30D1B9038A115, 0xFFFFFFFE00000000}
-#define Curve_N_24 {0x146BC9B1B4D22831ull, 0xFFFFFFFF99DEF836ull, 0xFFFFFFFFFFFFFFFFull}
-#define Curve_N_32 {0xF3B9CAC2FC632551ull, 0xBCE6FAADA7179E84ull, 0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFF00000000ull}
+#define Curve_N_24 {0x146BC9B1B4D22831, 0xFFFFFFFF99DEF836, 0xFFFFFFFFFFFFFFFF}
+#define Curve_N_32 {0xF3B9CAC2FC632551, 0xBCE6FAADA7179E84, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF00000000}
 #define Curve_N_48 {0xECEC196ACCC52973, 0x581A0DB248B0A77A, 0xC7634D81F4372DDF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF}
 
 static uint64_t curve_p[NUM_ECC_DIGITS] = CONCAT(Curve_P_, ECC_CURVE);
@@ -67,28 +105,28 @@ static uint64_t curve_b[NUM_ECC_DIGITS] = CONCAT(Curve_B_, ECC_CURVE);
 static EccPoint curve_G = CONCAT(Curve_G_, ECC_CURVE);
 static uint64_t curve_n[NUM_ECC_DIGITS] = CONCAT(Curve_N_, ECC_CURVE);
 
-//#if (defined(_WIN32) || defined(_WIN64))
-///* Windows */
-//
-//#define WIN32_LEAN_AND_MEAN
-//#include <windows.h>
-//#include <wincrypt.h>
-//
-//static int getRandomNumber(uint64_t *p_vli)
-//{
-	//HCRYPTPROV l_prov;
-	//if(!CryptAcquireContext(&l_prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
-	//{
-		//return 0;
-	//}
-//
-	//CryptGenRandom(l_prov, ECC_BYTES, (BYTE *)p_vli);
-	//CryptReleaseContext(l_prov, 0);
-	//
-	//return 1;
-//}
-//
-//#else /* _WIN32 */
+#if (defined(_WIN32) || defined(_WIN64))
+/* Windows */
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <wincrypt.h>
+
+static int getRandomNumber(uint64_t *p_vli)
+{
+	HCRYPTPROV l_prov;
+	if(!CryptAcquireContext(&l_prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+	{
+		return 0;
+	}
+
+	CryptGenRandom(l_prov, ECC_BYTES, (BYTE *)p_vli);
+	CryptReleaseContext(l_prov, 0);
+	
+	return 1;
+}
+
+#else
 
 /* Assume that we are using a POSIX-like system with /dev/urandom or /dev/random. */
 //#include "sys/types.h"
@@ -99,37 +137,13 @@ static uint64_t curve_n[NUM_ECC_DIGITS] = CONCAT(Curve_N_, ECC_CURVE);
 #define O_CLOEXEC 0
 #endif
 
-//static int getRandomNumber(uint64_t *p_vli)
-//{
-	//int l_fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
-	//if(l_fd == -1)
-	//{
-		//l_fd = open("/dev/random", O_RDONLY | O_CLOEXEC);
-		//if(l_fd == -1)
-		//{
-			//return 0;
-		//}
-	//}
-	//
-	//char *l_ptr = (char *)p_vli;
-	//size_t l_left = ECC_BYTES;
-	//while(l_left > 0)
-	//{
-		//int l_read = read(l_fd, l_ptr, l_left);
-		//if(l_read <= 0)
-		//{ // read failed
-			//close(l_fd);
-			//return 0;
-		//}
-		//l_left -= l_read;
-		//l_ptr += l_read;
-	//}
-	//
-	//close(l_fd);
-	//return 1;
-//}
-//
-//#endif /* _WIN32 */
+static int getRandomNumber(uint64_t *p_vli)
+{
+	// UNDONE
+	return 0;
+}
+
+#endif
 
 
 
@@ -351,9 +365,9 @@ static uint128_t mul_64_64(uint64_t p_left, uint64_t p_right)
 {
     uint128_t l_result;
     
-    uint64_t a0 = p_left & 0xffffffffull;
+    uint64_t a0 = p_left & 0xffffffff;
     uint64_t a1 = p_left >> 32;
-    uint64_t b0 = p_right & 0xffffffffull;
+    uint64_t b0 = p_right & 0xffffffff;
     uint64_t b1 = p_right >> 32;
     
     uint64_t m0 = a0 * b0;
@@ -365,10 +379,10 @@ static uint128_t mul_64_64(uint64_t p_left, uint64_t p_right)
     m2 += m1;
     if(m2 < m1)
     { // overflow
-        m3 += 0x100000000ull;
+        m3 += 0x100000000;
     }
     
-    l_result.m_low = (m0 & 0xffffffffull) | (m2 << 32);
+    l_result.m_low = (m0 & 0xffffffff) | (m2 << 32);
     l_result.m_high = m3 + (m2 >> 32);
     
     return l_result;
@@ -476,27 +490,27 @@ static void vli_mmod_fast(uint64_t *p_result, uint64_t *p_product)
     vli_set(p_result, p_product);
     
     l_tmp[0] = p_product[2];
-    l_tmp[1] = (p_product[3] & 0x1FFFFFFFFull) | (p_product[2] << 33);
+    l_tmp[1] = (p_product[3] & 0x1FFFFFFFF) | (p_product[2] << 33);
     l_carry = vli_add(p_result, p_result, l_tmp);
     
     l_tmp[0] = (p_product[2] >> 31) | (p_product[3] << 33);
-    l_tmp[1] = (p_product[3] >> 31) | ((p_product[2] & 0xFFFFFFFF80000000ull) << 2);
+    l_tmp[1] = (p_product[3] >> 31) | ((p_product[2] & 0xFFFFFFFF80000000) << 2);
     l_carry += vli_add(p_result, p_result, l_tmp);
     
     l_tmp[0] = (p_product[2] >> 62) | (p_product[3] << 2);
-    l_tmp[1] = (p_product[3] >> 62) | ((p_product[2] & 0xC000000000000000ull) >> 29) | (p_product[3] << 35);
+    l_tmp[1] = (p_product[3] >> 62) | ((p_product[2] & 0xC000000000000000) >> 29) | (p_product[3] << 35);
     l_carry += vli_add(p_result, p_result, l_tmp);
     
     l_tmp[0] = (p_product[3] >> 29);
-    l_tmp[1] = ((p_product[3] & 0xFFFFFFFFE0000000ull) << 4);
+    l_tmp[1] = ((p_product[3] & 0xFFFFFFFFE0000000) << 4);
     l_carry += vli_add(p_result, p_result, l_tmp);
     
     l_tmp[0] = (p_product[3] >> 60);
-    l_tmp[1] = (p_product[3] & 0xFFFFFFFE00000000ull);
+    l_tmp[1] = (p_product[3] & 0xFFFFFFFE00000000);
     l_carry += vli_add(p_result, p_result, l_tmp);
     
     l_tmp[0] = 0;
-    l_tmp[1] = ((p_product[3] & 0xF000000000000000ull) >> 27);
+    l_tmp[1] = ((p_product[3] & 0xF000000000000000) >> 27);
     l_carry += vli_add(p_result, p_result, l_tmp);
     
     while(l_carry || vli_cmp(curve_p, p_result) != 1)
@@ -548,7 +562,7 @@ static void vli_mmod_fast(uint64_t *p_result, uint64_t *p_product)
     
     /* s1 */
     l_tmp[0] = 0;
-    l_tmp[1] = p_product[5] & 0xffffffff00000000ull;
+    l_tmp[1] = p_product[5] & 0xffffffff00000000;
     l_tmp[2] = p_product[6];
     l_tmp[3] = p_product[7];
     l_carry = vli_lshift(l_tmp, l_tmp, 1);
@@ -570,7 +584,7 @@ static void vli_mmod_fast(uint64_t *p_result, uint64_t *p_product)
     
     /* s4 */
     l_tmp[0] = (p_product[4] >> 32) | (p_product[5] << 32);
-    l_tmp[1] = (p_product[5] >> 32) | (p_product[6] & 0xffffffff00000000ull);
+    l_tmp[1] = (p_product[5] >> 32) | (p_product[6] & 0xffffffff00000000);
     l_tmp[2] = p_product[7];
     l_tmp[3] = (p_product[6] >> 32) | (p_product[4] << 32);
     l_carry += vli_add(p_result, p_result, l_tmp);
@@ -586,7 +600,7 @@ static void vli_mmod_fast(uint64_t *p_result, uint64_t *p_product)
     l_tmp[0] = p_product[6];
     l_tmp[1] = p_product[7];
     l_tmp[2] = 0;
-    l_tmp[3] = (p_product[4] >> 32) | (p_product[5] & 0xffffffff00000000ull);
+    l_tmp[3] = (p_product[4] >> 32) | (p_product[5] & 0xffffffff00000000);
     l_carry -= vli_sub(p_result, p_result, l_tmp);
     
     /* d3 */
@@ -598,9 +612,9 @@ static void vli_mmod_fast(uint64_t *p_result, uint64_t *p_product)
     
     /* d4 */
     l_tmp[0] = p_product[7];
-    l_tmp[1] = p_product[4] & 0xffffffff00000000ull;
+    l_tmp[1] = p_product[4] & 0xffffffff00000000;
     l_tmp[2] = p_product[5];
-    l_tmp[3] = p_product[6] & 0xffffffff00000000ull;
+    l_tmp[3] = p_product[6] & 0xffffffff00000000;
     l_carry -= vli_sub(p_result, p_result, l_tmp);
     
     if(l_carry < 0)
@@ -737,7 +751,7 @@ static void vli_modInv(uint64_t *p_result, uint64_t *p_input, uint64_t *p_mod)
             vli_rshift1(u);
             if(l_carry)
             {
-                u[NUM_ECC_DIGITS-1] |= 0x8000000000000000ull;
+                u[NUM_ECC_DIGITS-1] |= 0x8000000000000000;
             }
         }
         else if(EVEN(b))
@@ -750,7 +764,7 @@ static void vli_modInv(uint64_t *p_result, uint64_t *p_input, uint64_t *p_mod)
             vli_rshift1(v);
             if(l_carry)
             {
-                v[NUM_ECC_DIGITS-1] |= 0x8000000000000000ull;
+                v[NUM_ECC_DIGITS-1] |= 0x8000000000000000;
             }
         }
         else if(l_cmpResult > 0)
@@ -769,7 +783,7 @@ static void vli_modInv(uint64_t *p_result, uint64_t *p_input, uint64_t *p_mod)
             vli_rshift1(u);
             if(l_carry)
             {
-                u[NUM_ECC_DIGITS-1] |= 0x8000000000000000ull;
+                u[NUM_ECC_DIGITS-1] |= 0x8000000000000000;
             }
         }
         else
@@ -788,7 +802,7 @@ static void vli_modInv(uint64_t *p_result, uint64_t *p_input, uint64_t *p_mod)
             vli_rshift1(v);
             if(l_carry)
             {
-                v[NUM_ECC_DIGITS-1] |= 0x8000000000000000ull;
+                v[NUM_ECC_DIGITS-1] |= 0x8000000000000000;
             }
         }
     }
@@ -1062,60 +1076,60 @@ static void ecc_point_decompress(EccPoint *p_point, const uint8_t p_compressed[E
     }
 }
 
-//int ecc_make_key(uint8_t p_publicKey[ECC_BYTES+1], uint8_t p_privateKey[ECC_BYTES])
-//{
-    //uint64_t l_private[NUM_ECC_DIGITS];
-    //EccPoint l_public;
-    //unsigned l_tries = 0;
-    //
-    //do
-    //{
-        //if(!getRandomNumber(l_private) || (l_tries++ >= MAX_TRIES))
-        //{
-            //return 0;
-        //}
-        //if(vli_isZero(l_private))
-        //{
-            //continue;
-        //}
-    //
-        ///* Make sure the private key is in the range [1, n-1].
-           //For the supported curves, n is always large enough that we only need to subtract once at most. */
-        //if(vli_cmp(curve_n, l_private) != 1)
-        //{
-            //vli_sub(l_private, l_private, curve_n);
-        //}
-//
-        //EccPoint_mult(&l_public, &curve_G, l_private, NULL);
-    //} while(EccPoint_isZero(&l_public));
-    //
-    //ecc_native2bytes(p_privateKey, l_private);
-    //ecc_native2bytes(p_publicKey + 1, l_public.x);
-    //p_publicKey[0] = 2 + (l_public.y[0] & 0x01);
-    //return 1;
-//}
+int ecc_make_key(uint8_t p_publicKey[ECC_BYTES+1], uint8_t p_privateKey[ECC_BYTES])
+{
+    uint64_t l_private[NUM_ECC_DIGITS];
+    EccPoint l_public;
+    unsigned l_tries = 0;
+    
+    do
+    {
+        if(!getRandomNumber(l_private) || (l_tries++ >= MAX_TRIES))
+        {
+            return 0;
+        }
+        if(vli_isZero(l_private))
+        {
+            continue;
+        }
+    
+        /* Make sure the private key is in the range [1, n-1].
+           For the supported curves, n is always large enough that we only need to subtract once at most. */
+        if(vli_cmp(curve_n, l_private) != 1)
+        {
+            vli_sub(l_private, l_private, curve_n);
+        }
 
-//int ecdh_shared_secret(const uint8_t p_publicKey[ECC_BYTES+1], const uint8_t p_privateKey[ECC_BYTES], uint8_t p_secret[ECC_BYTES])
-//{
-    //EccPoint l_public;
-    //uint64_t l_private[NUM_ECC_DIGITS];
-    //uint64_t l_random[NUM_ECC_DIGITS];
-    //
-    //if(!getRandomNumber(l_random))
-    //{
-        //return 0;
-    //}
-    //
-    //ecc_point_decompress(&l_public, p_publicKey);
-    //ecc_bytes2native(l_private, p_privateKey);
-    //
-    //EccPoint l_product;
-    //EccPoint_mult(&l_product, &l_public, l_private, l_random);
-    //
-    //ecc_native2bytes(p_secret, l_product.x);
-    //
-    //return !EccPoint_isZero(&l_product);
-//}
+        EccPoint_mult(&l_public, &curve_G, l_private, NULL);
+    } while(EccPoint_isZero(&l_public));
+    
+    ecc_native2bytes(p_privateKey, l_private);
+    ecc_native2bytes(p_publicKey + 1, l_public.x);
+    p_publicKey[0] = 2 + (l_public.y[0] & 0x01);
+    return 1;
+}
+
+int ecdh_shared_secret(const uint8_t p_publicKey[ECC_BYTES+1], const uint8_t p_privateKey[ECC_BYTES], uint8_t p_secret[ECC_BYTES])
+{
+    EccPoint l_public;
+    uint64_t l_private[NUM_ECC_DIGITS];
+    uint64_t l_random[NUM_ECC_DIGITS];
+    
+    if(!getRandomNumber(l_random))
+    {
+        return 0;
+    }
+    
+    ecc_point_decompress(&l_public, p_publicKey);
+    ecc_bytes2native(l_private, p_privateKey);
+    
+    EccPoint l_product;
+    EccPoint_mult(&l_product, &l_public, l_private, l_random);
+    
+    ecc_native2bytes(p_secret, l_product.x);
+    
+    return !EccPoint_isZero(&l_product);
+}
 
 /* -------- ECDSA code -------- */
 
@@ -1189,54 +1203,54 @@ static uint umax(uint a, uint b)
     return (a > b ? a : b);
 }
 
-//int ecdsa_sign(const uint8_t p_privateKey[ECC_BYTES], const uint8_t p_hash[ECC_BYTES], uint8_t p_signature[ECC_BYTES*2])
-//{
-    //uint64_t k[NUM_ECC_DIGITS];
-    //uint64_t l_tmp[NUM_ECC_DIGITS];
-    //uint64_t l_s[NUM_ECC_DIGITS];
-    //EccPoint p;
-    //unsigned l_tries = 0;
-    //
-    //do
-    //{
-        //if(!getRandomNumber(k) || (l_tries++ >= MAX_TRIES))
-        //{
-            //return 0;
-        //}
-        //if(vli_isZero(k))
-        //{
-            //continue;
-        //}
-    //
-        //if(vli_cmp(curve_n, k) != 1)
-        //{
-            //vli_sub(k, k, curve_n);
-        //}
-    //
-        ///* tmp = k * G */
-        //EccPoint_mult(&p, &curve_G, k, NULL);
-    //
-        ///* r = x1 (mod n) */
-        //if(vli_cmp(curve_n, p.x) != 1)
-        //{
-            //vli_sub(p.x, p.x, curve_n);
-        //}
-    //} while(vli_isZero(p.x));
-//
-    //ecc_native2bytes(p_signature, p.x);
-    //
-    //ecc_bytes2native(l_tmp, p_privateKey);
-    //vli_modMult(l_s, p.x, l_tmp, curve_n); /* s = r*d */
-    //ecc_bytes2native(l_tmp, p_hash);
-    //vli_modAdd(l_s, l_tmp, l_s, curve_n); /* s = e + r*d */
-    //vli_modInv(k, k, curve_n); /* k = 1 / k */
-    //vli_modMult(l_s, l_s, k, curve_n); /* s = (e + r*d) / k */
-    //ecc_native2bytes(p_signature + ECC_BYTES, l_s);
-    //
-    //return 1;
-//}
+int ecdsa_sign_sw(const uint8_t p_privateKey[ECC_BYTES], const uint8_t p_hash[ECC_BYTES], uint8_t p_signature[ECC_BYTES*2])
+{
+    uint64_t k[NUM_ECC_DIGITS];
+    uint64_t l_tmp[NUM_ECC_DIGITS];
+    uint64_t l_s[NUM_ECC_DIGITS];
+    EccPoint p;
+    unsigned l_tries = 0;
+    
+    do
+    {
+        if(!getRandomNumber(k) || (l_tries++ >= MAX_TRIES))
+        {
+            return 0;
+        }
+        if(vli_isZero(k))
+        {
+            continue;
+        }
+    
+        if(vli_cmp(curve_n, k) != 1)
+        {
+            vli_sub(k, k, curve_n);
+        }
+    
+        /* tmp = k * G */
+        EccPoint_mult(&p, &curve_G, k, NULL);
+    
+        /* r = x1 (mod n) */
+        if(vli_cmp(curve_n, p.x) != 1)
+        {
+            vli_sub(p.x, p.x, curve_n);
+        }
+    } while(vli_isZero(p.x));
 
-int ecdsa_verify(const uint8_t p_publicKey[ECC_BYTES*2], const uint8_t p_hash[ECC_BYTES], const uint8_t p_signature[ECC_BYTES*2])
+    ecc_native2bytes(p_signature, p.x);
+    
+    ecc_bytes2native(l_tmp, p_privateKey);
+    vli_modMult(l_s, p.x, l_tmp, curve_n); /* s = r*d */
+    ecc_bytes2native(l_tmp, p_hash);
+    vli_modAdd(l_s, l_tmp, l_s, curve_n); /* s = e + r*d */
+    vli_modInv(k, k, curve_n); /* k = 1 / k */
+    vli_modMult(l_s, l_s, k, curve_n); /* s = (e + r*d) / k */
+    ecc_native2bytes(p_signature + ECC_BYTES, l_s);
+    
+    return 1;
+}
+
+int ecdsa_verify_sw(const uint8_t p_publicKey[ECC_BYTES*2], const uint8_t p_hash[ECC_BYTES], const uint8_t p_signature[ECC_BYTES*2])
 {
     uint64_t u1[NUM_ECC_DIGITS], u2[NUM_ECC_DIGITS];
     uint64_t z[NUM_ECC_DIGITS];
@@ -1300,11 +1314,11 @@ int ecdsa_verify(const uint8_t p_publicKey[ECC_BYTES*2], const uint8_t p_hash[EC
         EccPoint_double_jacobian(rx, ry, z);
         
         int l_index = (!!vli_testBit(u1, i)) | ((!!vli_testBit(u2, i)) << 1);
-        EccPoint *l_point = l_points[l_index];
-        if(l_point)
+        EccPoint *l_ipoint = l_points[l_index];
+        if(l_ipoint)
         {
-            vli_set(tx, l_point->x);
-            vli_set(ty, l_point->y);
+            vli_set(tx, l_ipoint->x);
+            vli_set(ty, l_ipoint->y);
             apply_z(tx, ty, z);
             vli_modSub(tz, rx, tx, curve_p); /* Z = x2 - x1 */
             XYcZ_add(tx, ty, rx, ry);
@@ -1328,9 +1342,9 @@ int ecdsa_verify(const uint8_t p_publicKey[ECC_BYTES*2], const uint8_t p_hash[EC
 
 
 /** \brief return software generated ECDSA verification result
- * \param[in] msg         ptr to message or challenge
- * \param[in] signature   ptr to the signature to verify
- * \param[in] public_key  ptr to public key of device which signed the challenge
+ * \param[in] msg         Pointer to message or challenge
+ * \param[in] signature   Pointer to the signature to verify
+ * \param[in] public_key  Pointer to public key of device which signed the challenge
  * return ATCA_STATUS
  */
 
@@ -1338,7 +1352,7 @@ int atcac_sw_ecdsa_verify_p256( const uint8_t msg[ATCA_ECC_P256_FIELD_SIZE],
                                 const uint8_t signature[ATCA_ECC_P256_SIGNATURE_SIZE],
                                 const uint8_t public_key[ATCA_ECC_P256_PUBLIC_KEY_SIZE])
 {
-	if (ecdsa_verify(public_key, msg, signature) == 1)
+	if (ecdsa_verify_sw(public_key, msg, signature) == 1)
 	{
 		return ATCA_SUCCESS;
 	}

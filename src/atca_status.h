@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  *
  * \brief  Atmel Crypto Auth status codes
  *
@@ -63,10 +109,10 @@ typedef enum {
 	ATCACERT_E_INVALID_DATE			= 0xA5,  //!< Date is invalid.
 	ATCACERT_E_UNIMPLEMENTED		= 0xA6,  //!< Function is unimplemented for the current configuration.
 	ATCACERT_E_UNEXPECTED_ELEM_SIZE	= 0xA7,  //!< A certificate element size was not what was expected.
-	ATCACERT_E_ELEM_MISSING			= 0xA8,   //!< The certificate element isn't defined for the certificate definition.
+	ATCACERT_E_ELEM_MISSING			= 0xA8,  //!< The certificate element isn't defined for the certificate definition.
 	ATCACERT_E_ELEM_OUT_OF_BOUNDS   = 0xA9,  //!< Certificate element is out of bounds for the given certificate.
 	ATCACERT_E_BAD_CERT				= 0xAA,  //!< Certificate structure is bad in some way.
-	ATCACERT_E_WRONG_CERT_DEF		= 0xAB,
+	ATCACERT_E_WRONG_CERT_DEF		= 0xAB, 
 	ATCACERT_E_VERIFY_FAILED		= 0xAC,  //!< Certificate or challenge/response verification failed.
 	ATCA_WAKE_FAILED				= 0xD0, //!< response status byte indicates CheckMac failure (status byte = 0x01)
 	ATCA_CHECKMAC_VERIFY_FAILED		= 0xD1, //!< response status byte indicates CheckMac failure (status byte = 0x01)
@@ -96,7 +142,7 @@ typedef enum {
 	ATCA_TX_FAIL					= 0xF7, //!< Failed to write
 	ATCA_NOT_LOCKED					= 0xF8, //!< required zone was not locked
 	ATCA_NO_DEVICES					= 0xF9, //!< For protocols that support device discovery (kit protocol), no devices were found
-	ATCA_VERIFY_FAIL				= 0xFA,
+	ATCA_VERIFY_FAIL				= 0xFA, //!< ECDSA Verify Failed
 } ATCA_STATUS;
 
 #ifdef __cplusplus

@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief low-level HAL - methods used to setup indirection to physical layer interface.
  * this level does the dirty work of abstracting the higher level ATCAIFace methods from the
  * low-level physical interfaces.  Its main goal is to keep low-level details from bleeding into
@@ -43,8 +89,11 @@
  */
 
 
-/* when incorporating ATCA HAL into your application, you need to adjust the #defines in atca_hal.h to include
+/* when incorporating ATCA HAL into your application, you need to adjust the pound defines in atca_hal.h to include
  * and exclude appropriate interfaces - this optimizes memory use when not using a specific iface implementation in your application */
+
+#define I2C_BAUD_RATE_100KHZ 	100000
+#define I2C_WAKE_SLAVE_ADDR		0x10	//Slave address used in wake function
 
 #include "cryptoauthlib.h"
 #include "atca_hal.h"
@@ -131,6 +180,9 @@ ATCA_STATUS hal_iface_init( ATCAIfaceCfg *cfg, ATCAHAL_t *hal )
 		status = ATCA_SUCCESS;
 		#endif
 		break;
+	default:
+		status = ATCA_BAD_PARAM;
+		break;
 	}
 	return status;
 }
@@ -173,6 +225,9 @@ ATCA_STATUS hal_iface_release( ATCAIfaceType ifacetype, void *hal_data )
 		status = hal_kit_hid_release(hal_data);
 			#endif
 		break;
+	default:
+		status = ATCA_BAD_PARAM;
+	break;
 	}
 
 	return status;
@@ -186,23 +241,30 @@ ATCA_STATUS hal_i2c_wake(ATCAIface iface)
 {
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
 	uint32_t bdrt = cfg->atcai2c.baud;
-	uint8_t data[4], expected[4] = { 0x04, 0x11, 0x33, 0x43 };
-	uint16_t rlength = 4;
+	uint8_t addr = cfg->atcai2c.slave_address;
+	uint8_t data[ATCA_RSP_SIZE_MIN], expected[ATCA_RSP_SIZE_MIN] = { 0x04, 0x11, 0x33, 0x43 };
+	uint16_t rlength = ATCA_RSP_SIZE_MIN;
 	
-	if ( bdrt != 100000 )  // if not already at 100KHz, change it
-	change_i2c_speed( iface, 100000 );
+	if ( bdrt != I2C_BAUD_RATE_100KHZ )  // if not already at 100KHz, change it
+	change_i2c_speed( iface, I2C_BAUD_RATE_100KHZ );
 	
+	//change address temporarily to 0x11 in order to wake up IC correctly and also test writing HAL layer function
+	cfg->atcai2c.slave_address = I2C_WAKE_SLAVE_ADDR;
+
 	i2c_master_write (iface,&data[0],0);    // part will NACK, so don't check for status
 	
+	//change address back to original value
+	cfg->atcai2c.slave_address = addr;
+
 	atca_delay_us(cfg->wake_delay);     // wait tWHI + tWLO which is configured based on device type and configuration structure
 	
 	hal_i2c_receive (iface,&data[0],&rlength);
 	
 	// if necessary, revert baud rate to what came in.
-	if ( bdrt != 100000 )
+	if ( bdrt != I2C_BAUD_RATE_100KHZ )
 	change_i2c_speed( iface, bdrt );
 
-	if ( memcmp( data, expected, 4 ) == 0 )
+	if ( memcmp( data, expected, ATCA_RSP_SIZE_MIN ) == 0 )
 	return ATCA_SUCCESS;
 
 	return ATCA_COMM_FAIL;
@@ -213,7 +275,7 @@ ATCA_STATUS hal_i2c_wake(ATCAIface iface)
  */
 ATCA_STATUS hal_i2c_idle(ATCAIface iface)
 {
-	uint8_t data = 0x02, datalength = 1;  // idle word address value and length
+	uint8_t data = IDLE_DATA, datalength = IDLE_LENGTH;  // idle word address value and length
 	
 	if (i2c_master_write(iface,&data,datalength) != ATCA_SUCCESS) 
 		return ATCA_COMM_FAIL;
@@ -226,7 +288,7 @@ ATCA_STATUS hal_i2c_idle(ATCAIface iface)
  */
 ATCA_STATUS hal_i2c_sleep(ATCAIface iface)
 {
-	uint8_t data = 0x01, datalength = 1;  // sleed word address value and length
+	uint8_t data = SLEEP_DATA, datalength = SLEEP_LENGTH;  // sleed word address value and length
 	
 	if (i2c_master_write(iface,&data,datalength) != ATCA_SUCCESS) 
 	return ATCA_COMM_FAIL;
@@ -234,7 +296,7 @@ ATCA_STATUS hal_i2c_sleep(ATCAIface iface)
 	return ATCA_SUCCESS;
 }
 
-ATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, int txlength)
+ATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, uint16_t txlength)
 {
 	// for this implementation of I2C with CryptoAuth chips, txdata is assumed to have ATCAPacket format
 
@@ -244,10 +306,6 @@ ATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, int txlength)
 	txdata[0] = 0x03;   // insert the Word Address Value, Command token
 	txlength++;         // account for word address value byte.
 	
-
-	//	statusCode = i2c_master_write_packet_wait(&i2c_master_instance, &packet);
-	//if ( i2c_master_write_packet_wait_no_stop( &(i2c_hal_data[bus]->i2c_master_instance), &packet) != STATUS_OK)
-	//if ( i2c_master_write_packet_wait(&(i2c_hal_data[bus]->i2c_master_instance), &packet) != STATUS_OK )
 	if (i2c_master_write(iface, txdata, txlength) != ATCA_SUCCESS)
 	return ATCA_COMM_FAIL;
 

@@ -1,5 +1,51 @@
 /**
  * \file
+ * \brief
+ *
+ * Copyright (c) 2016 Astek Corporation. All rights reserved.
+ *
+ * \astek_eguard_library_license_start
+ *
+ * \page eGuard_License_Derivative
+ *
+ * The source code contained within is subject to Astek's eGuard licensing
+ * agreement located at: https://www.astekcorp.com/
+ *
+ * The eGuard product may be used in source and binary forms, with or without
+ * modifications, with the following conditions:
+ *
+ * 1. The source code must retain the above copyright notice, this list of
+ *    conditions, and the disclaimer.
+ *
+ * 2. Distribution of source code is not authorized.
+ *
+ * 3. This software may only be used in connection with an Astek eGuard
+ *    Product.
+ *
+ * DISCLAIMER: THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT OF
+ * THIRD PARTY RIGHTS. THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ * DO NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR
+ * REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR
+ * ERROR FREE. ANY USE OF THE SOFTWARE SHALL BE MADE ENTIRELY AT THE USER'S OWN
+ * RISK. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR ANY CONTRIUBUTER OF
+ * INTELLECTUAL PROPERTY RIGHTS TO THE SOFTWARE PROPERTY BE LIABLE FOR ANY
+ * CLAIM, OR ANY DIRECT, SPECIAL, INDIRECT, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM ANY ALLEGED INFRINGEMENT
+ * OR ANY LOSS OF USE, DATA, OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE, OR UNDER ANY OTHER LEGAL THEORY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE IMPLEMENTATION, USE, COMMERCIALIZATION, OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ *
+ * The following license file is included for completeness of documentation. 
+ * This file is a derivative work owned by Astek and is also subject to Astek's
+ * eGuard License agreement at https://www.astekcorp.com/
+ *
+ * \astek_eguard_library_license_stop
+ */
+/**
+ * \file
  * \brief CryptoAuthLib Basic API methods - a simple crypto authentication api.
  * These methods manage a global ATCADevice object behind the scenes.  They also
  * manage the wake/idle state transitions so callers don't need to.
@@ -75,7 +121,7 @@ ATCA_STATUS atcab_idle(void);
 ATCA_STATUS atcab_sleep(void);
 
 // discovery
-ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], int max);
+ATCA_STATUS atcab_cfg_discover( ATCAIfaceCfg cfgArray[], uint16_t max);
 
 // basic crypto API
 ATCA_STATUS atcab_info(uint8_t *revision);
@@ -85,8 +131,8 @@ ATCA_STATUS atcab_nonce(const uint8_t *tempkey);
 ATCA_STATUS atcab_nonce_rand(const uint8_t *seed, uint8_t* rand_out);
 ATCA_STATUS atcab_random(uint8_t *rand_out);
 
-ATCA_STATUS atcab_is_locked(uint8_t zone, bool *lock_state);
-ATCA_STATUS atcab_is_slot_locked(uint8_t slot, bool *lock_state);
+ATCA_STATUS atcab_is_locked(uint8_t zone, bool *islocked);
+ATCA_STATUS atcab_is_slot_locked(uint8_t slot, bool *islocked);
 
 ATCA_STATUS atcab_get_addr(uint8_t zone, uint8_t slot, uint8_t block, uint8_t offset, uint16_t* addr);
 ATCA_STATUS atcab_read_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t offset, uint8_t *data, uint8_t len);
@@ -114,13 +160,13 @@ ATCA_STATUS atcab_lock_config_zone(uint8_t* lock_response);
 ATCA_STATUS atcab_lock_data_zone(uint8_t* lock_response);
 ATCA_STATUS atcab_lock_data_slot(uint8_t slot, uint8_t* lock_response);
 
-ATCA_STATUS atcab_priv_write(uint8_t slot, const uint8_t priv_key[36], uint8_t write_key_slot, const uint8_t write_key[32]);
-ATCA_STATUS atcab_genkey( int slot, uint8_t *pubkey );
+ATCA_STATUS atcab_priv_write(uint8_t slot, const uint8_t priv_key[36], uint8_t write_key_slot, const uint8_t write_key[ATCA_PRIV_KEY_SIZE]);
+ATCA_STATUS atcab_genkey( uint8_t slot, uint8_t *pubkey );
 ATCA_STATUS atcab_get_pubkey(uint8_t privSlotId, uint8_t *pubkey);
 ATCA_STATUS atcab_calc_pubkey(uint8_t privSlotId, uint8_t *pubkey);
 ATCA_STATUS atcab_sign(uint16_t slot, const uint8_t *msg, uint8_t *signature);
 ATCA_STATUS atcab_verify_extern(const uint8_t *message, const uint8_t *signature, const uint8_t *pubkey, bool *verified);
-ATCA_STATUS atcab_ecdh(uint16_t key_id, const uint8_t* pub_key, uint8_t* ret_ecdh);
+ATCA_STATUS atcab_ecdh(uint16_t key_id, const uint8_t* pubkey, uint8_t* ret_ecdh);
 ATCA_STATUS atcab_ecdh_enc(uint16_t slotid, const uint8_t* pubkey, uint8_t* ret_ecdh, const uint8_t* enckey, const uint8_t enckeyid);
 ATCA_STATUS atcab_gendig(uint8_t zone, uint16_t key_id);
 ATCA_STATUS atcab_gendig_host(uint8_t zone, uint16_t key_id, uint8_t *other_data, uint8_t len);
