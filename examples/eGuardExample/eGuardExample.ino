@@ -17,16 +17,16 @@ void setup() {
   /************************************************************/
   // Read software revision and report results.
   /************************************************************/
-  Serial.print(F("Getting Software Revision..."));
-  ret = egGetRev(sw_rev);
-  if (0 == ret) {
-    Serial.print(F("Revision: "));
-    Serial.println(sw_rev);
-  } else {
-    Serial.println(F("No revision data found"));
-  }
-  Serial.println(F("Getting Software Revision Complete"));
-  
+//  Serial.print(F("Getting Software Revision..."));
+//  ret = egGetRev(sw_rev);
+//  if (0 == ret) {
+//    Serial.print(F("Revision: "));
+//    Serial.println(sw_rev);
+//  } else {
+//    Serial.println(F("No revision data found"));
+//  }
+//  Serial.println(F("Getting Software Revision Complete"));
+//  
   /************************************************************/
   // Select eGuard device to use for authentication operations
   /************************************************************/
@@ -72,19 +72,19 @@ void setup() {
   /************************************************************/
   // Get Configuration from eGuard
   /************************************************************/
-  Serial.print(F("Getting eGuard Configuration..."));
-  ret = egGetConfig((OTPConfig*)&config.OTPFormat);
-  if (0 == ret) {
-    for (int i; i < ATCA_BLOCK_SIZE; i++ ) {
-      Serial.print((char)config.Description[i]);
-    }
-    Serial.println("");
-  } else {
-    Serial.print(F("No device detected. Returned: "));
-    Serial.println(ret);
-  }
-  Serial.println(F("Getting eGuard Configuration Complete"));
-
+//  Serial.print(F("Getting eGuard Configuration..."));
+//  ret = egGetConfig((OTPConfig*)&config.OTPFormat);
+//  if (0 == ret) {
+//    for (int i; i < ATCA_BLOCK_SIZE; i++ ) {
+//      Serial.print((char)config.Description[i]);
+//    }
+//    Serial.println("");
+//  } else {
+//    Serial.print(F("No device detected. Returned: "));
+//    Serial.println(ret);
+//  }
+//  Serial.println(F("Getting eGuard Configuration Complete"));
+//
 
   /************************************************************/
   // Generate Random number from eGuard
