@@ -3,4 +3,4 @@
 Security features for your Arduino
 
 For more information about this library please visit Astek at
-http://www.astekcorp.com/security
+http://www.astekcorp.com/tutorials/43-using-eguard-with-arduino
