@@ -8,7 +8,7 @@
 extern ATCAIfaceCfg *cfg_eGuard;
 
 /** \brief Custom configurations for crypto ICs */
-#define DEV1_NAME	cfg_device_e0;
+#define DEV1_NAME	cfg_device_e0
 #define DEV1_ADDR	0xE0
 #define DEV1_BUS	2
 extern ATCAIfaceCfg *DEV1_NAME;
