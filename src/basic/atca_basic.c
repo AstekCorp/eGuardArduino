@@ -1497,7 +1497,7 @@ ATCA_STATUS atcab_write_ecc_config_zone(const uint8_t* config_data)
 				// update the offset address after reading each block
 				++offset;
 				if ((block == 2) && (offset == 5)) {
-					// words above (block 2 offset 5 cant be written)
+					// words above (block 2 offset 5 can't be written)
 					++offset; index += ATCA_WORD_SIZE;
 				}
 			}else {
